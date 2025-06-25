@@ -1,0 +1,17 @@
+/* Remove default styles that might interfere with scrolling */
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh; /* Changed from height: 100vh to allow content to extend */
+  /* Removed overflow: hidden to allow scrolling */
+}
+
+/* Ensure body takes full height but allows scrolling */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%; /* Changed from height: 100% to allow content to extend */
+  /* Removed overflow: hidden to allow scrolling */
+}
