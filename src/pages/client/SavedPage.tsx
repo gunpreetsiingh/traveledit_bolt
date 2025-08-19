@@ -550,8 +550,8 @@ interface PastTrip {
 export default function SavedPage() {
   const { wishlists, loading: wishlistLoading, getOrganizedWishlists, removeFromWishlist, deleteWishlist } = useWishlist();
   
-  // Use sample data for demonstration, fallback to real data if available
-  const organizedWishlists = Object.keys(getOrganizedWishlists()).length > 0 ? getOrganizedWishlists() : sampleWishlistData;
+  // Force use of sample data for demonstration purposes
+  const organizedWishlists = sampleWishlistData;
   
   // Sample Data
   const bookedTrips: BookedTrip[] = [
