@@ -37,7 +37,7 @@ export interface TripElement {
   images: string[];
   type: string;
   price_indicator?: string;
-  location: any;
+  location: string | any;
 }
 
 /**

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useWishlist } from '@/hooks/useWishlist';
+import { supabase, TripElement, TripElementReview } from '@/lib/supabaseClient';
+import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useToast } from '@/hooks/use-toast';
 import { 
   ArrowLeft,
   MapPin, 
@@ -35,127 +38,11 @@ import {
   CheckCircle,
   Navigation,
   Bookmark,
-  Send
+  Send,
+  RefreshCw
 } from 'lucide-react';
 import { format } from 'date-fns';
 import InspirationCard, { InspirationData } from '@/components/explore/InspirationCard';
-
-// Mock data - in real app this would come from API/database
-const mockInspirationData: Record<string, InspirationData & {
-  fullDescription: string;
-  highlights: string[];
-  bestTimeToVisit: string;
-  duration: string;
-  priceRange: string;
-  difficulty?: string;
-  coordinates?: { lat: number; lng: number };
-  contact?: {
-    phone?: string;
-    email?: string;
-    website?: string;
-  };
-  gallery: string[];
-  faqs: Array<{ question: string; answer: string }>;
-  additionalResources: Array<{ title: string; url: string; description: string }>;
-  reviews: Array<{
-    id: string;
-    author: string;
-    avatar?: string;
-    rating: number;
-    date: Date;
-    comment: string;
-  }>;
-}> = {
-  [crypto.randomUUID()]: {
-    id: crypto.randomUUID(),
-    title: 'Luxury Overwater Villa in Maldives',
-    description: 'Wake up to crystal-clear waters and pristine coral reefs right beneath your private villa. Includes butler service and private dining.',
-    fullDescription: 'Experience the ultimate in luxury and tranquility at this exclusive overwater villa resort in the Maldives. Each villa features floor-to-ceiling windows, a private deck with direct lagoon access, and unobstructed views of the Indian Ocean. The resort offers world-class amenities including a spa, multiple dining options, and a variety of water sports. Your dedicated butler will ensure every detail of your stay is perfect, from arranging private dining experiences to organizing excursions to nearby coral reefs.',
-    image: 'https://images.pexels.com/photos/1287460/pexels-photo-1287460.jpeg?auto=compress&cs=tinysrgb&w=800',
-    location: 'Maldives',
-    type: 'stay',
-    tags: ['luxury', 'overwater', 'romantic', 'spa'],
-    rating: 4.9,
-    price: 'From $1,200/night',
-    duration: '3-7 nights',
-    advisor: 'Aisha Patel',
-    highlights: [
-      'Private overwater villa with glass floor panels',
-      'Dedicated butler service',
-      'Direct lagoon access for snorkeling',
-      'World-class spa treatments',
-      'Multiple fine dining restaurants',
-      'Complimentary water sports equipment'
-    ],
-    bestTimeToVisit: 'November to April (dry season)',
-    priceRange: '$1,200 - $3,500 per night',
-    coordinates: { lat: 3.2028, lng: 73.2207 },
-    contact: {
-      phone: '+960 664-2222',
-      email: 'reservations@luxuryresort.mv',
-      website: 'https://www.luxuryresort.mv'
-    },
-    gallery: [
-      'https://images.pexels.com/photos/1287460/pexels-photo-1287460.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/2474690/pexels-photo-2474690.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/1001682/pexels-photo-1001682.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/1450353/pexels-photo-1450353.jpeg?auto=compress&cs=tinysrgb&w=800'
-    ],
-    faqs: [
-      {
-        question: 'What is included in the villa rate?',
-        answer: 'The rate includes accommodation, daily breakfast, butler service, WiFi, and access to all resort facilities including the spa, fitness center, and water sports equipment.'
-      },
-      {
-        question: 'How do I get to the resort?',
-        answer: 'The resort provides seaplane transfers from Malé International Airport. The scenic 45-minute flight is included in packages of 4 nights or more.'
-      },
-      {
-        question: 'What water activities are available?',
-        answer: 'Guests can enjoy snorkeling, diving, kayaking, paddleboarding, fishing, and dolphin watching. All equipment is provided, and guided excursions can be arranged.'
-      },
-      {
-        question: 'Is the resort suitable for families?',
-        answer: 'While the resort caters primarily to couples, families with children over 12 are welcome. Family villas with additional space are available.'
-      }
-    ],
-    additionalResources: [
-      {
-        title: 'Maldives Travel Guide',
-        url: 'https://www.visitmaldives.com',
-        description: 'Official tourism website with comprehensive travel information'
-      },
-      {
-        title: 'Weather & Climate Information',
-        url: 'https://weather.com/maldives',
-        description: 'Current weather conditions and seasonal forecasts'
-      },
-      {
-        title: 'Visa Requirements',
-        url: 'https://immigration.gov.mv',
-        description: 'Entry requirements and visa information for international visitors'
-      }
-    ],
-    reviews: [
-      {
-        id: '1',
-        author: 'Sarah Johnson',
-        avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100',
-        rating: 5,
-        date: new Date(2024, 0, 15),
-        comment: 'Absolutely magical experience! The overwater villa exceeded all expectations. The butler service was impeccable and the snorkeling right from our deck was incredible.'
-      },
-      {
-        id: '2',
-        author: 'Michael Chen',
-        avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100',
-        rating: 5,
-        date: new Date(2024, 1, 3),
-        comment: 'Perfect honeymoon destination. The privacy, luxury, and natural beauty created unforgettable memories. Worth every penny!'
-      }
-    ]
-  }
-};
 
 // Related inspirations mock data
 const relatedInspirations: InspirationData[] = [
@@ -200,36 +87,168 @@ const relatedInspirations: InspirationData[] = [
   }
 ];
 
+interface ReviewWithUser extends TripElementReview {
+  user?: {
+    name: string | null;
+    profile_image_url: string | null;
+  };
+}
+
 export default function InspirationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useSupabaseUser();
   const { addToWishlist, isInWishlist } = useWishlist();
-  const [inspiration, setInspiration] = useState<typeof mockInspirationData[string] | null>(null);
+  const { toast } = useToast();
+  const [inspiration, setInspiration] = useState<TripElement | null>(null);
+  const [reviews, setReviews] = useState<ReviewWithUser[]>([]);
+  const [averageRating, setAverageRating] = useState<number>(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
 
   const isSaved = inspiration ? isInWishlist(inspiration.id) : false;
 
+  // Fetch inspiration data from Supabase
   useEffect(() => {
-    if (id && mockInspirationData[id]) {
-      setInspiration(mockInspirationData[id]);
-    } else {
-      // In real app, this would fetch from API
-      console.warn('Inspiration not found:', id);
-    }
+    const fetchInspiration = async () => {
+      if (!id) {
+        setError('No inspiration ID provided');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch trip element
+        const { data: tripElement, error: tripError } = await supabase
+          .from('trip_elements')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (tripError) {
+          console.error('Error fetching trip element:', tripError);
+          setError('Failed to load inspiration details');
+          return;
+        }
+
+        if (!tripElement) {
+          setError('Inspiration not found');
+          return;
+        }
+
+        setInspiration(tripElement);
+
+        // Fetch reviews with user information
+        const { data: reviewsData, error: reviewsError } = await supabase
+          .from('trip_element_reviews')
+          .select(`
+            *,
+            user:users(name, profile_image_url)
+          `)
+          .eq('trip_element_id', id)
+          .order('created_at', { ascending: false });
+
+        if (reviewsError) {
+          console.error('Error fetching reviews:', reviewsError);
+        } else {
+          const reviewsWithUser = reviewsData?.map(review => ({
+            ...review,
+            user: Array.isArray(review.user) ? review.user[0] : review.user
+          })) || [];
+          
+          setReviews(reviewsWithUser);
+          
+          // Calculate average rating
+          if (reviewsWithUser.length > 0) {
+            const validRatings = reviewsWithUser
+              .map(r => r.rating)
+              .filter((rating): rating is number => rating !== null);
+            
+            if (validRatings.length > 0) {
+              const avg = validRatings.reduce((sum, rating) => sum + rating, 0) / validRatings.length;
+              setAverageRating(Math.round(avg * 10) / 10);
+            }
+          }
+        }
+
+      } catch (err) {
+        console.error('Unexpected error fetching inspiration:', err);
+        setError('An unexpected error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInspiration();
   }, [id]);
 
-  if (!inspiration) {
+  // Helper function to get location string
+  const getLocationString = (location: any): string => {
+    if (!location) return 'Unknown Location';
+    
+    if (typeof location === 'string') {
+      return location;
+    }
+    
+    if (typeof location === 'object') {
+      if (location.country && location.region) {
+        return `${location.region}, ${location.country}`;
+      }
+      if (location.country) {
+        return location.country;
+      }
+      if (location.description) {
+        return location.description;
+      }
+    }
+    
+    return 'Unknown Location';
+  };
+
+  // Helper function to get images array
+  const getImagesArray = (images: any): string[] => {
+    if (!images) return [];
+    if (Array.isArray(images)) return images;
+    if (typeof images === 'string') return [images];
+    return [];
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="pt-20 pb-8">
+        <div className="container-spacing">
+          <div className="text-center py-16">
+            <RefreshCw className="h-16 w-16 text-muted-foreground mx-auto mb-4 animate-spin" />
+            <h2 className="text-2xl font-heading font-semibold mb-2">Loading Inspiration</h2>
+            <p className="text-muted-foreground">
+              Please wait while we fetch the details...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !inspiration) {
     return (
       <div className="pt-20 pb-8">
         <div className="container-spacing">
           <div className="text-center py-16">
             <AlertCircle className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-2xl font-heading font-semibold mb-2">Inspiration Not Found</h2>
+            <h2 className="text-2xl font-heading font-semibold mb-2">
+              {error || 'Inspiration Not Found'}
+            </h2>
             <p className="text-muted-foreground mb-6">
-              The inspiration you're looking for doesn't exist or has been removed.
+              {error || "The inspiration you're looking for doesn't exist or has been removed."}
             </p>
             <Button onClick={() => navigate('/explore')}>
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -240,6 +259,13 @@ export default function InspirationDetailPage() {
       </div>
     );
   }
+
+  const images = getImagesArray(inspiration.images);
+  const locationString = getLocationString(inspiration.location);
+  const tags = Array.isArray(inspiration.tags) ? inspiration.tags : [];
+  const highlights = Array.isArray(inspiration.highlights) ? inspiration.highlights : [];
+  const faqs = Array.isArray(inspiration.faqs) ? inspiration.faqs : [];
+  const additionalResources = Array.isArray(inspiration.additional_resources) ? inspiration.additional_resources : [];
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -271,12 +297,12 @@ export default function InspirationDetailPage() {
     // Convert inspiration data to TripElement format
     const tripElement = {
       id: inspiration.id,
-      title: inspiration.title,
-      description: inspiration.description,
-      images: inspiration.gallery,
+      title: inspiration.title || '',
+      description: inspiration.description || '',
+      images: images,
       type: inspiration.type,
-      price_indicator: inspiration.priceRange,
-      location: inspiration.location
+      price_indicator: inspiration.price_indicator,
+      location: locationString
     };
     
     addToWishlist(tripElement).finally(() => {
@@ -287,13 +313,18 @@ export default function InspirationDetailPage() {
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: inspiration.title,
-        text: inspiration.description,
+        title: inspiration.title || '',
+        text: inspiration.description || '',
         url: window.location.href,
       });
     } else {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link Copied",
+        description: "The inspiration link has been copied to your clipboard.",
+        variant: "default"
+      });
     }
   };
 
@@ -325,114 +356,132 @@ export default function InspirationDetailPage() {
         <div className="grid lg:grid-cols-2 gap-8 mb-12">
           {/* Image Gallery */}
           <div className="space-y-4">
-            <div className="relative overflow-hidden rounded-lg">
-              <img 
-                src={inspiration.gallery[selectedImageIndex]} 
-                alt={inspiration.title}
-                className="w-full h-96 object-cover"
-              />
-              <div className="absolute top-4 right-4 flex gap-2">
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className={cn(
-                    "rounded-full bg-white/90 hover:bg-white transition-all",
-                    isSaving && "opacity-50 cursor-not-allowed"
-                  )}
-                  onClick={handleSave}
-                  disabled={isSaving}
-                >
-                  {isSaving ? (
-                    <div className="h-4 w-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <Heart className={`h-4 w-4 ${isSaved ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
-                  )}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  className="rounded-full bg-white/90 hover:bg-white"
-                  onClick={handleShare}
-                >
-                  <Share className="h-4 w-4 text-gray-600" />
-                </Button>
-              </div>
-            </div>
-            
-            {/* Thumbnail Gallery */}
-            <div className="flex gap-2 overflow-x-auto">
-              {inspiration.gallery.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImageIndex(index)}
-                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
-                    selectedImageIndex === index ? 'border-primary' : 'border-transparent'
-                  }`}
-                >
+            {images.length > 0 ? (
+              <>
+                <div className="relative overflow-hidden rounded-lg">
                   <img 
-                    src={image} 
-                    alt={`Gallery ${index + 1}`}
-                    className="w-full h-full object-cover"
+                    src={images[selectedImageIndex]} 
+                    alt={inspiration.title || 'Inspiration'}
+                    className="w-full h-96 object-cover"
                   />
-                </button>
-              ))}
-            </div>
+                  <div className="absolute top-4 right-4 flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className={cn(
+                        "rounded-full bg-white/90 hover:bg-white transition-all",
+                        isSaving && "opacity-50 cursor-not-allowed"
+                      )}
+                      onClick={handleSave}
+                      disabled={isSaving}
+                    >
+                      {isSaving ? (
+                        <div className="h-4 w-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Heart className={`h-4 w-4 ${isSaved ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="rounded-full bg-white/90 hover:bg-white"
+                      onClick={handleShare}
+                    >
+                      <Share className="h-4 w-4 text-gray-600" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Thumbnail Gallery */}
+                {images.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto">
+                    {images.map((image, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedImageIndex(index)}
+                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
+                          selectedImageIndex === index ? 'border-primary' : 'border-transparent'
+                        }`}
+                      >
+                        <img 
+                          src={image} 
+                          alt={`Gallery ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="w-full h-96 bg-muted rounded-lg flex items-center justify-center">
+                <div className="text-center">
+                  <Camera className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No images available</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Details */}
           <div className="space-y-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Badge className={`${getTypeColor(inspiration.type)} flex items-center gap-1`}>
-                  {getTypeIcon(inspiration.type)}
-                  {inspiration.type}
-                </Badge>
-                {inspiration.rating && (
+                {inspiration.type && (
+                  <Badge className={`${getTypeColor(inspiration.type)} flex items-center gap-1`}>
+                    {getTypeIcon(inspiration.type)}
+                    {inspiration.type}
+                  </Badge>
+                )}
+                {averageRating > 0 && (
                   <div className="flex items-center gap-1">
                     <Star className="h-4 w-4 fill-accent text-accent" />
-                    <span className="font-medium">{inspiration.rating}</span>
+                    <span className="font-medium">{averageRating}</span>
+                    <span className="text-sm text-muted-foreground">({reviews.length})</span>
                   </div>
                 )}
               </div>
               
-              <h1 className="text-3xl font-heading font-bold mb-2">{inspiration.title}</h1>
+              <h1 className="text-3xl font-heading font-bold mb-2">{inspiration.title || 'Untitled'}</h1>
               
               <div className="flex items-center gap-1 text-muted-foreground mb-4">
                 <MapPin className="h-4 w-4" />
-                <span>{inspiration.location}</span>
+                <span>{locationString}</span>
               </div>
             </div>
 
             {/* Key Details */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">{inspiration.priceRange}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{inspiration.duration}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">{inspiration.bestTimeToVisit}</span>
-              </div>
-              {inspiration.advisor && (
+              {inspiration.price_indicator && (
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">{inspiration.price_indicator}</span>
+                </div>
+              )}
+              {inspiration.best_time_to_visit && (
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{inspiration.best_time_to_visit}</span>
+                </div>
+              )}
+              {inspiration.created_by && (
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">by {inspiration.advisor}</span>
+                  <span className="text-sm">Created by advisor</span>
                 </div>
               )}
             </div>
 
             {/* Tags */}
-            <div className="flex flex-wrap gap-2">
-              {inspiration.tags.map((tag, index) => (
-                <Badge key={index} variant="secondary">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {tags.map((tag, index) => (
+                  <Badge key={index} variant="secondary">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex gap-3">
@@ -465,90 +514,84 @@ export default function InspirationDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <p className="text-muted-foreground leading-relaxed">
-                    {isDescriptionExpanded ? inspiration.fullDescription : inspiration.description}
-                  </p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                    className="p-0 h-auto font-medium"
-                  >
-                    {isDescriptionExpanded ? (
-                      <>
-                        Show less <ChevronUp className="ml-1 h-4 w-4" />
-                      </>
-                    ) : (
-                      <>
-                        Read more <ChevronDown className="ml-1 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
+                  {inspiration.description ? (
+                    <>
+                      <p className="text-muted-foreground leading-relaxed">
+                        {inspiration.description}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-muted-foreground italic">No description available.</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             {/* Highlights */}
-            <Card>
-              <CardHeader>
-                <CardTitle>What's Included</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-3">
-                  {inspiration.highlights.map((highlight, index) => (
-                    <div key={index} className="flex items-start gap-2">
-                      <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm">{highlight}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {highlights.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>What's Included</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    {highlights.map((highlight, index) => (
+                      <div key={index} className="flex items-start gap-2">
+                        <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm">{highlight}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* FAQ */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Frequently Asked Questions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {inspiration.faqs.map((faq, index) => (
-                    <div key={index} className="border-b border-border pb-4 last:border-b-0">
-                      <h4 className="font-medium mb-2">{faq.question}</h4>
-                      <p className="text-sm text-muted-foreground">{faq.answer}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            {faqs.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Frequently Asked Questions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {faqs.map((faq, index) => (
+                      <div key={index} className="border-b border-border pb-4 last:border-b-0">
+                        <h4 className="font-medium mb-2">{faq.question}</h4>
+                        <p className="text-sm text-muted-foreground">{faq.answer}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="details" className="space-y-8">
             {/* Contact Information */}
-            {inspiration.contact && (
+            {inspiration.contact_info && (
               <Card>
                 <CardHeader>
                   <CardTitle>Contact Information</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {inspiration.contact.phone && (
+                    {inspiration.contact_info.phone && (
                       <div className="flex items-center gap-3">
                         <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{inspiration.contact.phone}</span>
+                        <span className="text-sm">{inspiration.contact_info.phone}</span>
                       </div>
                     )}
-                    {inspiration.contact.email && (
+                    {inspiration.contact_info.email && (
                       <div className="flex items-center gap-3">
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{inspiration.contact.email}</span>
+                        <span className="text-sm">{inspiration.contact_info.email}</span>
                       </div>
                     )}
-                    {inspiration.contact.website && (
+                    {inspiration.contact_info.website && (
                       <div className="flex items-center gap-3">
                         <Globe className="h-4 w-4 text-muted-foreground" />
                         <a 
-                          href={inspiration.contact.website} 
+                          href={inspiration.contact_info.website} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-sm text-primary hover:underline flex items-center gap-1"
@@ -558,36 +601,44 @@ export default function InspirationDetailPage() {
                         </a>
                       </div>
                     )}
+                    {inspiration.contact_info.address && (
+                      <div className="flex items-center gap-3">
+                        <MapPin className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{inspiration.contact_info.address}</span>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
             )}
 
             {/* Additional Resources */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Additional Resources</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {inspiration.additionalResources.map((resource, index) => (
-                    <div key={index} className="border rounded-lg p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-medium mb-1">{resource.title}</h4>
-                          <p className="text-sm text-muted-foreground mb-2">{resource.description}</p>
+            {additionalResources.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Additional Resources</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {additionalResources.map((resource, index) => (
+                      <div key={index} className="border rounded-lg p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-medium mb-1">{resource.title}</h4>
+                            <p className="text-sm text-muted-foreground mb-2">{resource.description}</p>
+                          </div>
+                          <Button size="sm" variant="outline" asChild>
+                            <a href={resource.url} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </Button>
                         </div>
-                        <Button size="sm" variant="outline" asChild>
-                          <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                            <ExternalLink className="h-3 w-3" />
-                          </a>
-                        </Button>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="reviews" className="space-y-6">
@@ -595,44 +646,62 @@ export default function InspirationDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Guest Reviews</span>
-                  <div className="flex items-center gap-2">
-                    <Star className="h-5 w-5 fill-accent text-accent" />
-                    <span className="font-medium">{inspiration.rating}</span>
-                    <span className="text-sm text-muted-foreground">
-                      ({inspiration.reviews.length} reviews)
-                    </span>
-                  </div>
+                  {averageRating > 0 && (
+                    <div className="flex items-center gap-2">
+                      <Star className="h-5 w-5 fill-accent text-accent" />
+                      <span className="font-medium">{averageRating}</span>
+                      <span className="text-sm text-muted-foreground">
+                        ({reviews.length} reviews)
+                      </span>
+                    </div>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-6">
-                  {inspiration.reviews.map((review) => (
-                    <div key={review.id} className="border-b border-border pb-6 last:border-b-0">
-                      <div className="flex items-start gap-4">
-                        <Avatar>
-                          <AvatarImage src={review.avatar} />
-                          <AvatarFallback>
-                            {review.author.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-medium">{review.author}</span>
-                            <div className="flex items-center gap-1">
-                              {Array.from({ length: review.rating }, (_, i) => (
-                                <Star key={i} className="h-4 w-4 fill-accent text-accent" />
-                              ))}
+                {reviews.length > 0 ? (
+                  <div className="space-y-6">
+                    {reviews.map((review) => (
+                      <div key={review.id} className="border-b border-border pb-6 last:border-b-0">
+                        <div className="flex items-start gap-4">
+                          <Avatar>
+                            <AvatarImage src={review.user?.profile_image_url || undefined} />
+                            <AvatarFallback>
+                              {review.user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="font-medium">{review.user?.name || 'Anonymous'}</span>
+                              {review.rating && (
+                                <div className="flex items-center gap-1">
+                                  {Array.from({ length: Math.floor(review.rating) }, (_, i) => (
+                                    <Star key={i} className="h-4 w-4 fill-accent text-accent" />
+                                  ))}
+                                </div>
+                              )}
+                              {review.created_at && (
+                                <span className="text-sm text-muted-foreground">
+                                  {format(new Date(review.created_at), 'MMM d, yyyy')}
+                                </span>
+                              )}
                             </div>
-                            <span className="text-sm text-muted-foreground">
-                              {format(review.date, 'MMM d, yyyy')}
-                            </span>
+                            {review.comment && (
+                              <p className="text-sm text-muted-foreground">{review.comment}</p>
+                            )}
                           </div>
-                          <p className="text-sm text-muted-foreground">{review.comment}</p>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Star className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No Reviews Yet</h3>
+                    <p className="text-muted-foreground">
+                      Be the first to share your experience with this inspiration.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -649,14 +718,14 @@ export default function InspirationDetailPage() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{inspiration.location}</span>
+                    <span className="font-medium">{locationString}</span>
                   </div>
                   
-                  {inspiration.coordinates && (
+                  {inspiration.contact_info?.coordinates && (
                     <div className="bg-muted rounded-lg p-4 text-center">
                       <p className="text-sm text-muted-foreground mb-2">Interactive map would be displayed here</p>
                       <p className="text-xs text-muted-foreground">
-                        Coordinates: {inspiration.coordinates.lat}, {inspiration.coordinates.lng}
+                        Coordinates: {inspiration.contact_info.coordinates.lat}, {inspiration.contact_info.coordinates.lng}
                       </p>
                     </div>
                   )}

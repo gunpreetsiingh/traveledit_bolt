@@ -42,6 +42,45 @@ export interface UserDetails {
   updated_at: string | null;
 }
 
+export interface TripElement {
+  id: string;
+  title: string | null;
+  type: string | null;
+  description: string | null;
+  tags: string[] | null;
+  location: any | null;
+  images: string[] | null;
+  source_type: string | null;
+  external_id: string | null;
+  created_by: string | null;
+  approved: boolean | null;
+  created_at: string | null;
+  search_vector: any | null;
+  price_indicator: string | null;
+  highlights: string[] | null;
+  best_time_to_visit: string | null;
+  contact_info: {
+    phone?: string;
+    email?: string;
+    website?: string;
+    address?: string;
+    coordinates?: { lat: number; lng: number };
+  } | null;
+  faqs: Array<{ question: string; answer: string }> | null;
+  additional_resources: Array<{ title: string; url: string; description: string }> | null;
+  visibility: string | null;
+}
+
+export interface TripElementReview {
+  id: string;
+  trip_element_id: string;
+  user_id: string;
+  rating: number | null;
+  comment: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
 export interface QuestionnaireSession {
   id: string;
   session_id: string;
