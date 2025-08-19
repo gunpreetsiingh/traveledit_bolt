@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useWishlist } from '@/hooks/useWishlist';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,6 +39,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 // Data Interfaces
 interface BookedTrip {
@@ -85,6 +87,9 @@ interface PastTrip {
 }
 
 export default function SavedPage() {
+  const { wishlists, loading: wishlistLoading, getOrganizedWishlists, removeFromWishlist, deleteWishlist } = useWishlist();
+  const organizedWishlists = getOrganizedWishlists();
+  
   // Sample Data
   const bookedTrips: BookedTrip[] = [
     {
@@ -406,20 +411,128 @@ export default function SavedPage() {
             </Button>
           </div>
 
-          {/* Empty Wishlist State */}
-          <div className="text-center py-16">
-            <div className="max-w-md mx-auto">
-              <Compass className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-heading font-semibold mb-2">Your wishlist is empty!</h3>
-              <p className="text-muted-foreground mb-6">
-                Start saving ideas from Explore or Chat to build your dream travel collection.
-              </p>
-              <Button>
-                <Compass className="mr-2 h-4 w-4" />
-                Browse Inspirations
-              </Button>
+          {wishlistLoading ? (
+            <div className="text-center py-16">
+              <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+              <p className="text-muted-foreground">Loading your wishlists...</p>
             </div>
-          </div>
+          ) : Object.keys(organizedWishlists).length === 0 ? (
+            /* Empty Wishlist State */
+            <div className="text-center py-16">
+              <div className="max-w-md mx-auto">
+                <Compass className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-xl font-heading font-semibold mb-2">Your wishlist is empty!</h3>
+                <p className="text-muted-foreground mb-6">
+                  Start saving ideas from Explore or Chat to build your dream travel collection.
+                </p>
+                <Button>
+                  <Compass className="mr-2 h-4 w-4" />
+                  Browse Inspirations
+                </Button>
+              </div>
+            </div>
+          ) : (
+            /* Wishlist Content */
+            <div className="space-y-8">
+              {Object.entries(organizedWishlists).map(([country, countryWishlists]) => (
+                <div key={country} className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Globe className="h-5 w-5 text-primary" />
+                    <h3 className="text-xl font-heading font-semibold">{country}</h3>
+                    <Badge variant="secondary">
+                      {countryWishlists.reduce((total, wishlist) => total + (wishlist.items?.length || 0), 0)} items
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {countryWishlists.map((wishlist) => (
+                      <Card key={wishlist.id} className="overflow-hidden hover:shadow-floating transition-all duration-300">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-primary" />
+                              {wishlist.name}
+                            </CardTitle>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => deleteWishlist(wishlist.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <CardDescription>
+                            {wishlist.items?.length || 0} saved inspirations
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          {wishlist.items && wishlist.items.length > 0 ? (
+                            <div className="space-y-3">
+                              {wishlist.items.slice(0, 3).map((item) => (
+                                <div key={item.id} className="flex items-start gap-3 p-2 rounded-lg border">
+                                  {item.trip_element?.images && item.trip_element.images.length > 0 && (
+                                    <img 
+                                      src={Array.isArray(item.trip_element.images) ? item.trip_element.images[0] : item.trip_element.images}
+                                      alt={item.trip_element?.title || 'Inspiration'}
+                                      className="w-12 h-12 rounded object-cover flex-shrink-0"
+                                    />
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-medium text-sm truncate">
+                                      {item.trip_element?.title || 'Untitled'}
+                                    </h4>
+                                    <p className="text-xs text-muted-foreground line-clamp-2">
+                                      {item.trip_element?.description || 'No description'}
+                                    </p>
+                                    {item.trip_element?.price_indicator && (
+                                      <p className="text-xs font-medium text-primary mt-1">
+                                        {item.trip_element.price_indicator}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => removeFromWishlist(item.id)}
+                                    className="text-red-600 hover:text-red-700 p-1 h-auto"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                              
+                              {wishlist.items.length > 3 && (
+                                <div className="text-center pt-2">
+                                  <Button size="sm" variant="outline" className="text-xs">
+                                    View {wishlist.items.length - 3} more
+                                  </Button>
+                                </div>
+                              )}
+                              
+                              <div className="flex gap-2 pt-2">
+                                <Button size="sm" className="flex-1">
+                                  <TrendingUp className="mr-2 h-4 w-4" />
+                                  Plan Trip
+                                </Button>
+                                <Button size="sm" variant="outline">
+                                  <Eye className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-center py-4">
+                              <p className="text-sm text-muted-foreground">No items in this wishlist</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Past Trips */}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useWishlist } from '@/hooks/useWishlist';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,12 +41,34 @@ interface InspirationCardProps {
 
 export default function InspirationCard({ data, onSave, onChat, onView }: InspirationCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  const [isSaved, setIsSaved] = useState(data.isSaved || false);
+  const { addToWishlist, isInWishlist } = useWishlist();
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  
+  const isSaved = isInWishlist(data.id);
 
   const handleSave = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsSaved(!isSaved);
+    
+    if (!isSaved) {
+      setIsLoading(true);
+      // Convert InspirationData to TripElement format for the hook
+      const tripElement = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        images: [data.image], // InspirationCard has single image, convert to array
+        type: data.type,
+        price_indicator: data.price,
+        location: data.location
+      };
+      
+      addToWishlist(tripElement).finally(() => {
+        setIsLoading(false);
+      });
+    }
+    
+    // Still call the original onSave callback if provided
     onSave?.(data.id);
   };
 
@@ -105,13 +128,21 @@ export default function InspirationCard({ data, onSave, onChat, onView }: Inspir
             <Button
               size="sm"
               variant="secondary"
-              className="rounded-full p-2 h-8 w-8 bg-white/90 hover:bg-white"
+              className={cn(
+                "rounded-full p-2 h-8 w-8 bg-white/90 hover:bg-white transition-all",
+                isLoading && "opacity-50 cursor-not-allowed"
+              )}
               onClick={handleSave}
+              disabled={isLoading}
             >
-              <Heart className={cn(
-                "h-4 w-4 transition-colors",
-                isSaved ? "fill-red-500 text-red-500" : "text-gray-600"
-              )} />
+              {isLoading ? (
+                <div className="h-4 w-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Heart className={cn(
+                  "h-4 w-4 transition-colors",
+                  isSaved ? "fill-red-500 text-red-500" : "text-gray-600"
+                )} />
+              )}
             </Button>
             <Button
               size="sm"
