@@ -435,104 +435,106 @@ export default function SavedPage() {
             </div>
           ) : (
             /* Wishlist Content */
-            <div className="space-y-8">
-              {Object.entries(organizedWishlists).map(([country, countryWishlists]) => (
-                <div key={country} className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Globe className="h-5 w-5 text-primary" />
-                    <h3 className="text-xl font-heading font-semibold">{country}</h3>
-                    <Badge variant="secondary">
-                      {countryWishlists.reduce((total, wishlist) => total + (wishlist.items?.length || 0), 0)} items
-                    </Badge>
-                  </div>
-                  
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {countryWishlists.map((wishlist) => (
-                      <Card key={wishlist.id} className="overflow-hidden hover:shadow-floating transition-all duration-300">
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg flex items-center gap-2">
-                              <MapPin className="h-4 w-4 text-primary" />
-                              {wishlist.name}
-                            </CardTitle>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => deleteWishlist(wishlist.id)}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <CardDescription>
-                            {wishlist.items?.length || 0} saved inspirations
+            <div className="space-y-6">
+              {Object.entries(organizedWishlists).map(([country, countryWishlists]) => {
+                // Calculate totals for the country
+                const totalCities = countryWishlists.length;
+                const totalInspirations = countryWishlists.reduce((total, wishlist) => total + (wishlist.items?.length || 0), 0);
+                
+                // Get the first image from any wishlist item for the country card
+                const countryImage = countryWishlists
+                  .find(wishlist => wishlist.items && wishlist.items.length > 0)
+                  ?.items?.[0]?.trip_element?.images?.[0] || 
+                  'https://images.pexels.com/photos/1287460/pexels-photo-1287460.jpeg?auto=compress&cs=tinysrgb&w=400';
+
+                return (
+                  <Card key={country} className="overflow-hidden hover:shadow-floating transition-all duration-300">
+                    {/* Country Header */}
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center gap-4">
+                        <img 
+                          src={countryImage}
+                          alt={country}
+                          className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
+                        />
+                        <div className="flex-1">
+                          <CardTitle className="text-xl font-heading font-semibold flex items-center gap-2">
+                            <Globe className="h-5 w-5 text-primary" />
+                            {country}
+                          </CardTitle>
+                          <CardDescription className="mt-1">
+                            {totalCities} {totalCities === 1 ? 'city' : 'cities'} • {totalInspirations} {totalInspirations === 1 ? 'inspiration' : 'inspirations'}
                           </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          {wishlist.items && wishlist.items.length > 0 ? (
-                            <div className="space-y-3">
-                              {wishlist.items.slice(0, 3).map((item) => (
-                                <div key={item.id} className="flex items-start gap-3 p-2 rounded-lg border">
-                                  {item.trip_element?.images && item.trip_element.images.length > 0 && (
-                                    <img 
-                                      src={Array.isArray(item.trip_element.images) ? item.trip_element.images[0] : item.trip_element.images}
-                                      alt={item.trip_element?.title || 'Inspiration'}
-                                      className="w-12 h-12 rounded object-cover flex-shrink-0"
-                                    />
-                                  )}
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="font-medium text-sm truncate">
-                                      {item.trip_element?.title || 'Untitled'}
-                                    </h4>
-                                    <p className="text-xs text-muted-foreground line-clamp-2">
-                                      {item.trip_element?.description || 'No description'}
-                                    </p>
-                                    {item.trip_element?.price_indicator && (
-                                      <p className="text-xs font-medium text-primary mt-1">
-                                        {item.trip_element.price_indicator}
-                                      </p>
-                                    )}
+                        </div>
+                        <Badge variant="secondary" className="bg-primary/10 text-primary">
+                          {totalInspirations}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+
+                    {/* Cities List */}
+                    <CardContent className="pt-0">
+                      <div className="space-y-0">
+                        {countryWishlists.map((wishlist, index) => (
+                          <div key={wishlist.id} className="group">
+                            <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-muted/50 transition-colors">
+                              <div className="flex items-center gap-3 flex-1">
+                                <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium">{wishlist.city}</span>
+                                    <Badge variant="outline" className="text-xs">
+                                      {wishlist.items?.length || 0}
+                                    </Badge>
                                   </div>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => removeFromWishlist(item.id)}
-                                    className="text-red-600 hover:text-red-700 p-1 h-auto"
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
+                                  <p className="text-xs text-muted-foreground mt-0.5">
+                                    Last updated {format(new Date(wishlist.updated_at), 'MMM d, yyyy')}
+                                  </p>
                                 </div>
-                              ))}
+                              </div>
                               
-                              {wishlist.items.length > 3 && (
-                                <div className="text-center pt-2">
-                                  <Button size="sm" variant="outline" className="text-xs">
-                                    View {wishlist.items.length - 3} more
-                                  </Button>
-                                </div>
-                              )}
-                              
-                              <div className="flex gap-2 pt-2">
-                                <Button size="sm" className="flex-1">
-                                  <TrendingUp className="mr-2 h-4 w-4" />
-                                  Plan Trip
+                              {/* Action buttons - shown on hover */}
+                              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button size="sm" variant="ghost" className="h-8 px-2">
+                                  <Eye className="h-3 w-3" />
                                 </Button>
-                                <Button size="sm" variant="outline">
-                                  <Eye className="h-4 w-4" />
+                                <Button size="sm" variant="ghost" className="h-8 px-2">
+                                  <TrendingUp className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => deleteWishlist(wishlist.id)}
+                                  className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="h-3 w-3" />
                                 </Button>
                               </div>
                             </div>
-                          ) : (
-                            <div className="text-center py-4">
-                              <p className="text-sm text-muted-foreground">No items in this wishlist</p>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                            
+                            {/* Separator line between cities (except last) */}
+                            {index < countryWishlists.length - 1 && (
+                              <Separator className="ml-7" />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Country-level actions */}
+                      <div className="flex gap-2 mt-6 pt-4 border-t">
+                        <Button size="sm" className="flex-1">
+                          <TrendingUp className="mr-2 h-4 w-4" />
+                          Plan {country} Trip
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          <Share className="mr-2 h-4 w-4" />
+                          Share
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </section>
