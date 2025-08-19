@@ -909,7 +909,11 @@ export default function SavedPage() {
                 const countryImage = countryImages[country] || 'https://images.pexels.com/photos/1287460/pexels-photo-1287460.jpeg?auto=compress&cs=tinysrgb&w=400';
 
                 return (
-                  <Card key={country} className="overflow-hidden hover:shadow-soft transition-all duration-200 h-fit">
+                  <Card 
+                    key={country} 
+                    className="overflow-hidden hover:shadow-soft transition-all duration-200 h-fit cursor-pointer group"
+                    onClick={() => navigate(`/wishlist/${encodeURIComponent(country)}`)}
+                  >
                     {/* Country Header */}
                     <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-accent/5">
                       <div className="flex items-center gap-4">
@@ -933,7 +937,15 @@ export default function SavedPage() {
                             {totalCities} {totalCities === 1 ? 'city' : 'cities'} • {totalInspirations} saved
                           </CardDescription>
                         </div>
-                        <Button size="sm" variant="outline" className="rounded-full px-2 py-1 h-7">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="rounded-full px-2 py-1 h-7"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/wishlist/${encodeURIComponent(country)}`);
+                          }}
+                        >
                           <TrendingUp className="h-3 w-3" />
                         </Button>
                       </div>
@@ -944,7 +956,13 @@ export default function SavedPage() {
                       <div className="space-y-0 max-h-48 overflow-y-auto">
                         {countryWishlists.map((wishlist, index) => (
                           <div key={wishlist.id} className="group">
-                            <div className="flex items-center justify-between py-2 px-2 rounded-md hover:bg-muted/50 transition-colors cursor-pointer">
+                            <div 
+                              className="flex items-center justify-between py-2 px-2 rounded-md hover:bg-muted/50 transition-colors cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/wishlist/${encodeURIComponent(country)}/${encodeURIComponent(wishlist.city)}`);
+                              }}
+                            >
                               <div className="flex items-center gap-3 flex-1">
                                 <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                                 <div className="flex-1 min-w-0">
@@ -964,7 +982,15 @@ export default function SavedPage() {
                               
                               {/* Action buttons - shown on hover */}
                               <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="h-6 w-6 p-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/wishlist/${encodeURIComponent(country)}/${encodeURIComponent(wishlist.city)}`);
+                                  }}
+                                >
                                   <Eye className="h-3 w-3" />
                                 </Button>
                                 <Button 
