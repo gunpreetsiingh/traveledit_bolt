@@ -10,6 +10,7 @@ import ChatPage from '@/pages/client/ChatPage';
 import SavedPage from '@/pages/client/SavedPage';
 import TripDetailPage from '@/pages/client/TripDetailPage';
 import ProfilePage from '@/pages/client/ProfilePage';
+import InspirationDetailPage from '@/pages/client/InspirationDetailPage';
 
 // Advisor Pages
 import DashboardPage from '@/pages/advisor/DashboardPage';
@@ -73,6 +74,11 @@ function App() {
         <Route path="/client/profile" element={
           <Layout userRole="client">
             <ProfilePage />
+          </Layout>
+        } />
+        <Route path="/inspiration/:id" element={
+          <Layout userRole="client">
+            <InspirationDetailPage />
           </Layout>
         } />
         

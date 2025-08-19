@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,6 +41,7 @@ interface InspirationCardProps {
 export default function InspirationCard({ data, onSave, onChat, onView }: InspirationCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isSaved, setIsSaved] = useState(data.isSaved || false);
+  const navigate = useNavigate();
 
   const handleSave = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -53,6 +55,9 @@ export default function InspirationCard({ data, onSave, onChat, onView }: Inspir
   };
 
   const handleView = () => {
+    // Navigate to the detail page
+    navigate(`/inspiration/${data.id}`);
+    // Also call the onView callback if provided
     onView?.(data.id);
   };
 
