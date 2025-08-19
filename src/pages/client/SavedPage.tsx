@@ -43,7 +43,6 @@ import {
   TrendingUp,
   RefreshCw,
   ChevronRight,
-  Clock,
   DollarSign,
   Star,
   Users,
