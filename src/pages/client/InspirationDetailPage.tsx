@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useWishlist } from '@/hooks/useWishlist';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -202,11 +203,14 @@ const relatedInspirations: InspirationData[] = [
 export default function InspirationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { addToWishlist, isInWishlist } = useWishlist();
   const [inspiration, setInspiration] = useState<typeof mockInspirationData[string] | null>(null);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+
+  const isSaved = inspiration ? isInWishlist(inspiration.id) : false;
 
   useEffect(() => {
     if (id && mockInspirationData[id]) {
@@ -260,8 +264,24 @@ export default function InspirationDetailPage() {
   };
 
   const handleSave = () => {
-    setIsSaved(!isSaved);
-    // In real app, this would save to user's wishlist
+    if (!inspiration || isSaved) return;
+    
+    setIsSaving(true);
+    
+    // Convert inspiration data to TripElement format
+    const tripElement = {
+      id: inspiration.id,
+      title: inspiration.title,
+      description: inspiration.description,
+      images: inspiration.gallery,
+      type: inspiration.type,
+      price_indicator: inspiration.priceRange,
+      location: inspiration.location
+    };
+    
+    addToWishlist(tripElement).finally(() => {
+      setIsSaving(false);
+    });
   };
 
   const handleShare = () => {
@@ -315,10 +335,18 @@ export default function InspirationDetailPage() {
                 <Button
                   size="sm"
                   variant="secondary"
-                  className="rounded-full bg-white/90 hover:bg-white"
+                  className={cn(
+                    "rounded-full bg-white/90 hover:bg-white transition-all",
+                    isSaving && "opacity-50 cursor-not-allowed"
+                  )}
                   onClick={handleSave}
+                  disabled={isSaving}
                 >
-                  <Heart className={`h-4 w-4 ${isSaved ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+                  {isSaving ? (
+                    <div className="h-4 w-4 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Heart className={`h-4 w-4 ${isSaved ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} />
+                  )}
                 </Button>
                 <Button
                   size="sm"
@@ -414,7 +442,7 @@ export default function InspirationDetailPage() {
               </Button>
               <Button size="lg" variant="outline" onClick={handleSave}>
                 <Bookmark className="mr-2 h-4 w-4" />
-                {isSaved ? 'Saved' : 'Save'}
+                {isSaving ? 'Saving...' : isSaved ? 'Saved' : 'Save'}
               </Button>
             </div>
           </div>
