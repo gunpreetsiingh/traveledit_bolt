@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWishlist } from '@/hooks/useWishlist';
+import ShortlistedTripCard, { ShortlistedTrip } from '@/components/trips/ShortlistedTripCard';
 import PlanTripModal from '@/components/modals/PlanTripModal';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -40,7 +42,15 @@ import {
   Timer,
   TrendingUp,
   RefreshCw,
-  Trash2
+  RefreshCw,
+  ChevronRight,
+  Calendar,
+  Clock,
+  DollarSign,
+  Star,
+  Users,
+  CheckCircle,
+  Bookmark
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
