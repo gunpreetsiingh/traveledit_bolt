@@ -130,7 +130,7 @@ export default function InspirationDetailPage() {
           .from('trip_elements')
           .select('*')
           .eq('id', id)
-          .single();
+          .maybeSingle();
 
         if (tripError) {
           console.error('Error fetching trip element:', tripError);
