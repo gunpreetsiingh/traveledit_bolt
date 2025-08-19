@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWishlist } from '@/hooks/useWishlist';
-import ShortlistedTripCard, { ShortlistedTrip } from '@/components/trips/ShortlistedTripCard';
 import PlanTripModal from '@/components/modals/PlanTripModal';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -42,10 +40,7 @@ import {
   Timer,
   TrendingUp,
   RefreshCw,
-  ChevronRight,
-  DollarSign,
-  CheckCircle,
-  Bookmark
+  Trash2
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -949,117 +944,6 @@ export default function SavedPage() {
               Share Wishlist
             </Button>
           </div>
-
-          {/* Shortlisted Trips Section */}
-          <section className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-heading font-semibold mb-2">Shortlisted Trips</h2>
-                <p className="text-muted-foreground">
-                  Your planned trips ready for booking
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <Bookmark className="h-3 w-3" />
-                  {shortlistedTrips.length} trips
-                </Badge>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => navigate('/client/shortlisted-trips')}
-                  className="flex items-center gap-2"
-                >
-                  View All
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Horizontal Scrolling Trip Cards */}
-            {loadingTrips ? (
-              <div className="flex gap-6 overflow-hidden">
-                {Array.from({ length: 3 }, (_, i) => (
-                  <div key={i} className="flex-shrink-0 w-80">
-                    <Card className="h-96 animate-pulse">
-                      <div className="h-48 bg-muted" />
-                      <CardContent className="p-6 space-y-3">
-                        <div className="h-4 bg-muted rounded w-3/4" />
-                        <div className="h-3 bg-muted rounded w-1/2" />
-                        <div className="h-3 bg-muted rounded w-2/3" />
-                      </CardContent>
-                    </Card>
-                  </div>
-                ))}
-              </div>
-            ) : shortlistedTrips.length > 0 ? (
-              <div className="relative">
-                <ScrollArea className="w-full whitespace-nowrap">
-                  <div className="flex space-x-6 pb-4">
-                    {shortlistedTrips.map((trip) => (
-                      <div key={trip.id} className="flex-shrink-0 w-80">
-                        <ShortlistedTripCard
-                          trip={trip}
-                          onViewDetails={handleViewTripDetails}
-                          onRemoveFromShortlist={handleRemoveFromShortlist}
-                          onShare={handleShareTrip}
-                          onChat={handleChatAboutTrip}
-                        />
-                      </div>
-                    ))}
-                    
-                    {/* Add New Trip Card */}
-                    <div className="flex-shrink-0 w-80">
-                      <Card className="h-full border-2 border-dashed border-muted hover:border-primary/50 transition-colors cursor-pointer group">
-                        <CardContent className="h-full flex flex-col items-center justify-center p-6 text-center">
-                          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                            <Plus className="h-8 w-8 text-primary" />
-                          </div>
-                          <h3 className="font-heading font-semibold text-lg mb-2">Plan New Trip</h3>
-                          <p className="text-muted-foreground text-sm mb-4">
-                            Convert your saved inspirations into a planned trip
-                          </p>
-                          <Button 
-                            variant="outline" 
-                            onClick={() => navigate('/explore')}
-                            className="group-hover:bg-primary group-hover:text-primary-foreground transition-colors"
-                          >
-                            <Plus className="mr-2 h-4 w-4" />
-                            Start Planning
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
-                  <ScrollBar orientation="horizontal" />
-                </ScrollArea>
-                
-                {/* Scroll Hint - Only show if there are many trips */}
-                {shortlistedTrips.length > 3 && (
-                  <div className="absolute right-0 top-1/2 -translate-y-1/2 bg-gradient-to-l from-background via-background/80 to-transparent w-16 h-full flex items-center justify-end pr-2 pointer-events-none">
-                    <ChevronRight className="h-6 w-6 text-muted-foreground animate-pulse" />
-                  </div>
-                )}
-              </div>
-            ) : (
-              /* Empty State for Shortlisted Trips */
-              <Card className="border-2 border-dashed border-muted">
-                <CardContent className="py-12 text-center">
-                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Bookmark className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-heading font-semibold mb-2">No shortlisted trips yet</h3>
-                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                    Start planning your dream vacation by converting your saved inspirations into trip requests.
-                  </p>
-                  <Button onClick={() => navigate('/explore')}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Explore Inspirations
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </section>
 
           {wishlistLoading ? (
             <div className="text-center py-16">
