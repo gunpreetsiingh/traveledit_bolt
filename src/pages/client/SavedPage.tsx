@@ -42,7 +42,6 @@ import {
   Timer,
   TrendingUp,
   RefreshCw,
-  RefreshCw,
   ChevronRight,
   Calendar,
   Clock,
