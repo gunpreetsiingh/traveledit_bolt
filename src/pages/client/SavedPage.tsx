@@ -44,7 +44,6 @@ import {
   RefreshCw,
   ChevronRight,
   DollarSign,
-  Users,
   CheckCircle,
   Bookmark
 } from 'lucide-react';
