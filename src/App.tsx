@@ -92,6 +92,11 @@ function App() {
             <WishlistDetailPage />
           </Layout>
         } />
+        <Route path="/client/shortlisted-trips" element={
+          <Layout userRole="client">
+            <ShortlistedTripsPage />
+          </Layout>
+        } />
         
         {/* Advisor Routes - Advisor Layout */}
         <Route path="/advisor/dashboard" element={
