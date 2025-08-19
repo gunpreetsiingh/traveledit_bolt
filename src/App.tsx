@@ -23,6 +23,7 @@ import SettingsPage from '@/pages/admin/SettingsPage';
 import TripElementsPage from '@/pages/admin/TripElementsPage';
 import AccessPage from '@/pages/admin/AccessPage';
 import ComponentsShowcasePage from '@/pages/admin/ComponentsShowcasePage';
+import WishlistDetailPage from '@/pages/client/WishlistDetailPage';
 
 import './App.css';
 
@@ -79,6 +80,16 @@ function App() {
         <Route path="/inspiration/:id" element={
           <Layout userRole="client">
             <InspirationDetailPage />
+          </Layout>
+        } />
+        <Route path="/wishlist/:country" element={
+          <Layout userRole="client">
+            <WishlistDetailPage />
+          </Layout>
+        } />
+        <Route path="/wishlist/:country/:city" element={
+          <Layout userRole="client">
+            <WishlistDetailPage />
           </Layout>
         } />
         

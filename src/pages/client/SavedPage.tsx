@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useWishlist } from '@/hooks/useWishlist';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -549,6 +550,7 @@ interface PastTrip {
 
 export default function SavedPage() {
   const { wishlists, loading: wishlistLoading, getOrganizedWishlists, removeFromWishlist, deleteWishlist } = useWishlist();
+  const navigate = useNavigate();
   
   // Force use of sample data for demonstration purposes
   const organizedWishlists = sampleWishlistData;
@@ -965,7 +967,15 @@ export default function SavedPage() {
                                 <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
                                   <Eye className="h-3 w-3" />
                                 </Button>
-                                <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="h-6 w-6 p-0"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(`/wishlist/${encodeURIComponent(country)}/${encodeURIComponent(wishlist.city)}`);
+                                  }}
+                                >
                                   <ArrowRight className="h-3 w-3" />
                                 </Button>
                                 <Button
