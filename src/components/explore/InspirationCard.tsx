@@ -78,10 +78,15 @@ export default function InspirationCard({ data, onSave, onChat, onView }: Inspir
   };
 
   const handleView = () => {
-    // Navigate to the detail page
-    navigate(`/inspiration/${data.id}`);
-    // Also call the onView callback if provided
-    onView?.(data.id);
+    console.log('Navigating to inspiration detail:', data.id);
+    try {
+      // Navigate to the detail page
+      navigate(`/inspiration/${data.id}`);
+      // Also call the onView callback if provided
+      onView?.(data.id);
+    } catch (error) {
+      console.error('Navigation error:', error);
+    }
   };
 
   const getTypeColor = (type: InspirationData['type']) => {
