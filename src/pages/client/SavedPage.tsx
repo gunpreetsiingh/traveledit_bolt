@@ -552,14 +552,19 @@ interface PastTrip {
 export default function SavedPage() {
   const { wishlists, loading: wishlistLoading, getOrganizedWishlists, removeFromWishlist, deleteWishlist } = useWishlist();
   const navigate = useNavigate();
-  const [isPlanTripModalOpen, setIsPlanTripModalOpen] = useState(false);
-  const [selectedWishlistData, setSelectedWishlistData] = useState<{
-    name: string;
-    country: string;
-    city?: string;
-    inspirationCount: number;
-    image?: string;
-  } | null>(null);
+  const [planTripModal, setPlanTripModal] = useState<{
+    isOpen: boolean;
+    wishlistData: {
+      name: string;
+      country: string;
+      city?: string;
+      inspirationCount: number;
+      image?: string;
+    } | null;
+  }>({
+    isOpen: false,
+    wishlistData: null
+  });
   
   // Force use of sample data for demonstration purposes
   const organizedWishlists = sampleWishlistData;
@@ -657,28 +662,59 @@ export default function SavedPage() {
     }
   ];
 
-  // Handle Plan Trip button clicks
-  const handlePlanTrip = (wishlistData: {
-    name: string;
-    country: string;
-    city?: string;
-    inspirationCount: number;
-    image?: string;
-  }) => {
-    setSelectedWishlistData(wishlistData);
-    setIsPlanTripModalOpen(true);
+  const handlePlanTrip = (country: string, city?: string) => {
+    const countryWishlists = organizedWishlists[country] || [];
+    
+    if (city) {
+      // Planning trip for specific city
+      const cityWishlist = countryWishlists.find(w => w.city === city);
+      if (cityWishlist) {
+        setPlanTripModal({
+          isOpen: true,
+          wishlistData: {
+            name: `${city}, ${country}`,
+            country,
+            city,
+            inspirationCount: cityWishlist.items?.length || 0,
+            image: countryImages[country]
+          }
+        });
+      }
+    } else {
+      // Planning trip for entire country
+      const totalInspirations = countryWishlists.reduce((total, wishlist) => total + (wishlist.items?.length || 0), 0);
+      setPlanTripModal({
+        isOpen: true,
+        wishlistData: {
+          name: country,
+          country,
+          inspirationCount: totalInspirations,
+          image: countryImages[country]
+        }
+      });
+    }
   };
 
-  // Handle trip planning form submission
-  const handleTripPlanSubmit = async (formData: any) => {
-    console.log('Trip planning request submitted:', formData);
-    console.log('For wishlist:', selectedWishlistData);
+  const handlePlanTripSubmit = async (data: any) => {
+    console.log('Trip planning request submitted:', data);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // Here you would typically:
+    // 1. Create a new trip planning request in the database
+    // 2. Notify the assigned travel advisor
+    // 3. Set up collaboration workspace
+    // 4. Send confirmation emails to collaborators
     
-    // In real app, this would send to backend/advisor
-    console.log('Trip planning request sent to advisor');
+    // For now, just simulate the API call
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    console.log('Trip request created successfully');
+  };
+
+  const closePlanTripModal = () => {
+    setPlanTripModal({
+      isOpen: false,
+      wishlistData: null
+    });
   };
 
   const getStageColor = (stage: BookedTrip['stage']) => {
@@ -830,20 +866,13 @@ export default function SavedPage() {
                           </p>
                         </div>
                         <div className="flex flex-col gap-2">
-                            className="rounded-full px-2 py-1 h-7 hover:bg-primary hover:text-primary-foreground transition-colors"
+                          <Button>
                             <ArrowRight className="mr-2 h-4 w-4" />
                             Continue Planning
-                              const totalInspirations = countryWishlists.reduce((total, wishlist) => total + (wishlist.items?.length || 0), 0);
-                              handlePlanTrip({
-                                name: country,
-                                country: country,
-                                inspirationCount: totalInspirations,
-                                image: countryImages[country]
-                              });
+                          </Button>
                           <Button variant="outline" size="sm">
-                            title="Plan trip for entire country"
                             <MessageSquare className="mr-2 h-4 w-4" />
-                            <Plane className="h-3 w-3" />
+                            Open Chat
                           </Button>
                         </div>
                       </div>
@@ -980,10 +1009,10 @@ export default function SavedPage() {
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          className="rounded-full px-2 py-1 h-7"
+                          className="rounded-full px-2 py-1 h-7 hover:bg-primary hover:text-primary-foreground"
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/wishlist/${encodeURIComponent(country)}`);
+                            handlePlanTrip(country);
                           }}
                         >
                           <TrendingUp className="h-3 w-3" />
@@ -1025,32 +1054,24 @@ export default function SavedPage() {
                                 <Button 
                                   size="sm" 
                                   variant="ghost" 
-                                  className="h-6 w-6 p-0 hover:bg-primary/10"
+                                  className="h-6 w-6 p-0 hover:bg-blue-100"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     navigate(`/wishlist/${encodeURIComponent(country)}/${encodeURIComponent(wishlist.city)}`);
                                   }}
-                                  title="View city details"
                                 >
                                   <Eye className="h-3 w-3" />
                                 </Button>
                                 <Button 
                                   size="sm" 
                                   variant="ghost" 
-                                  className="h-6 w-6 p-0 hover:bg-blue-50"
+                                  className="h-6 w-6 p-0 hover:bg-green-100"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handlePlanTrip({
-                                      name: `${wishlist.city}, ${country}`,
-                                      country: country,
-                                      city: wishlist.city,
-                                      inspirationCount: wishlist.items?.length || 0,
-                                      image: countryImages[country]
-                                    });
+                                    handlePlanTrip(country, wishlist.city);
                                   }}
-                                  title="Plan trip for this city"
                                 >
-                                  <Plane className="h-3 w-3 text-blue-600" />
+                                  <Plane className="h-3 w-3" />
                                 </Button>
                                 <Button
                                   size="sm"
@@ -1080,19 +1101,6 @@ export default function SavedPage() {
             </div>
           )}
         </section>
-
-        {/* Plan Trip Modal */}
-        {selectedWishlistData && (
-          <PlanTripModal
-            isOpen={isPlanTripModalOpen}
-            onClose={() => {
-              setIsPlanTripModalOpen(false);
-              setSelectedWishlistData(null);
-            }}
-            wishlistData={selectedWishlistData}
-            onSubmit={handleTripPlanSubmit}
-          />
-        )}
 
         {/* Past Trips */}
         {pastTrips.length > 0 && (
@@ -1149,6 +1157,16 @@ export default function SavedPage() {
           </section>
         )}
       </div>
+      
+      {/* Plan Trip Modal */}
+      {planTripModal.wishlistData && (
+        <PlanTripModal
+          isOpen={planTripModal.isOpen}
+          onClose={closePlanTripModal}
+          wishlistData={planTripModal.wishlistData}
+          onSubmit={handlePlanTripSubmit}
+        />
+      )}
     </div>
   );
 }
