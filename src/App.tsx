@@ -24,6 +24,7 @@ import TripElementsPage from '@/pages/admin/TripElementsPage';
 import AccessPage from '@/pages/admin/AccessPage';
 import ComponentsShowcasePage from '@/pages/admin/ComponentsShowcasePage';
 import WishlistDetailPage from '@/pages/client/WishlistDetailPage';
+import ShortlistedTripsPage from '@/pages/client/ShortlistedTripsPage';
 
 import './App.css';
 
