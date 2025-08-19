@@ -44,7 +44,6 @@ import {
   RefreshCw,
   ChevronRight,
   DollarSign,
-  Star,
   Users,
   CheckCircle,
   Bookmark
