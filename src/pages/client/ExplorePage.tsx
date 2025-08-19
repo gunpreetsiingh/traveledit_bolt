@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 import ExploreHeader from '@/components/explore/ExploreHeader';
 import CategoryFilter from '@/components/explore/CategoryFilter';
 import InspirationCard, { InspirationData } from '@/components/explore/InspirationCard';
@@ -25,11 +27,98 @@ export default function ExplorePage() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [inspirationData, setInspirationData] = useState<(InspirationData & { height: number })[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Sample inspiration data with varying heights for masonry layout
-  const inspirationData: (InspirationData & { height: number })[] = [
+  // Fetch real inspiration data from Supabase
+  useEffect(() => {
+    const fetchInspirations = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const { data, error: fetchError } = await supabase
+          .from('trip_elements')
+          .select('*')
+          .eq('approved', true)
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        if (fetchError) {
+          throw fetchError;
+        }
+
+        if (!data || data.length === 0) {
+          // If no data in database, use sample data as fallback
+          console.log('No trip elements found in database, using sample data');
+          setInspirationData(getSampleData());
+          return;
+        }
+
+        // Transform database data to InspirationData format
+        const transformedData = data.map((item, index) => {
+          // Get first image from images array
+          const images = Array.isArray(item.images) ? item.images : 
+                        typeof item.images === 'string' ? [item.images] : [];
+          const firstImage = images[0] || 'https://images.pexels.com/photos/1287460/pexels-photo-1287460.jpeg?auto=compress&cs=tinysrgb&w=600';
+          
+          // Get location string
+          let locationString = 'Unknown Location';
+          if (typeof item.location === 'string') {
+            locationString = item.location;
+          } else if (typeof item.location === 'object' && item.location) {
+            if (item.location.country && item.location.region) {
+              locationString = `${item.location.region}, ${item.location.country}`;
+            } else if (item.location.country) {
+              locationString = item.location.country;
+            } else if (item.location.description) {
+              locationString = item.location.description;
+            }
+          }
+          
+          // Get tags array
+          const tags = Array.isArray(item.tags) ? item.tags : [];
+          
+          // Generate varying heights for masonry layout
+          const heights = [300, 320, 340, 360, 380, 400, 420];
+          const height = heights[index % heights.length];
+          
+          return {
+            id: item.id,
+            title: item.title || 'Untitled',
+            description: item.description || 'No description available',
+            image: firstImage,
+            location: locationString,
+            type: (item.type as 'stay' | 'eat' | 'do' | 'hire' | 'shop') || 'do',
+            tags: tags,
+            rating: undefined, // We'll need to calculate this from reviews if needed
+            price: item.price_indicator || undefined,
+            duration: item.best_time_to_visit || undefined,
+            advisor: undefined, // We'll need to join with users table if needed
+            height: height
+          };
+        });
+
+        setInspirationData(transformedData);
+
+      } catch (err) {
+        console.error('Error fetching inspirations:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch inspirations');
+        // Use sample data as fallback on error
+        setInspirationData(getSampleData());
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInspirations();
+  }, []);
+
+  // Sample data as fallback
+  const getSampleData = (): (InspirationData & { height: number })[] => [
     {
-      id: crypto.randomUUID(),
+      id: '550e8400-e29b-41d4-a716-446655440001', // Use the ID from the sample migration
       title: 'Luxury Overwater Villa in Maldives',
       description: 'Wake up to crystal-clear waters and pristine coral reefs right beneath your private villa. Includes butler service and private dining.',
       image: 'https://images.pexels.com/photos/1287460/pexels-photo-1287460.jpeg?auto=compress&cs=tinysrgb&w=600',
@@ -41,160 +130,6 @@ export default function ExplorePage() {
       duration: '3-7 nights',
       advisor: 'Aisha Patel',
       height: 380
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Sunset Dinner at Oia Castle',
-      description: 'Experience the world-famous Santorini sunset while dining on traditional Greek cuisine at this historic location.',
-      image: 'https://images.pexels.com/photos/161815/santorini-oia-greece-water-161815.jpeg?auto=compress&cs=tinysrgb&w=600',
-      location: 'Santorini, Greece',
-      type: 'eat',
-      tags: ['sunset', 'romantic', 'traditional', 'views'],
-      rating: 4.8,
-      price: '€85 per person',
-      duration: '2-3 hours',
-      advisor: 'Maria Konstantinou',
-      height: 320
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Private Helicopter Tour of Tokyo',
-      description: 'See Tokyo from above with a private helicopter tour covering all major landmarks including Mount Fuji on clear days.',
-      image: 'https://images.pexels.com/photos/2070033/pexels-photo-2070033.jpeg?auto=compress&cs=tinysrgb&w=600',
-      location: 'Tokyo, Japan',
-      type: 'do',
-      tags: ['helicopter', 'views', 'luxury', 'photography'],
-      rating: 4.7,
-      price: '¥45,000 per person',
-      duration: '45 minutes',
-      advisor: 'Hiroshi Tanaka',
-      height: 420
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Michelin Star Tasting Menu',
-      description: 'Indulge in a 12-course tasting menu at this renowned Michelin-starred restaurant featuring modern Italian cuisine.',
-      image: 'https://images.pexels.com/photos/2422915/pexels-photo-2422915.jpeg?auto=compress&cs=tinysrgb&w=600',
-      location: 'Florence, Italy',
-      type: 'eat',
-      tags: ['michelin', 'fine-dining', 'italian', 'wine-pairing'],
-      rating: 4.9,
-      price: '€180 per person',
-      duration: '3 hours',
-      advisor: 'Isabella Romano',
-      height: 360
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Patagonia Trekking Adventure',
-      description: 'Multi-day trekking experience through Torres del Paine with professional guides and luxury camping.',
-      image: 'https://images.pexels.com/photos/1666021/pexels-photo-1666021.jpeg?auto=compress&cs=tinysrgb&w=600',
-      location: 'Torres del Paine, Chile',
-      type: 'do',
-      tags: ['trekking', 'adventure', 'nature', 'camping'],
-      rating: 4.8,
-      price: 'From $2,400',
-      duration: '5 days',
-      advisor: 'Carlos Rodriguez',
-      height: 400
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Boutique Riad in Marrakech',
-      description: 'Traditional Moroccan architecture meets modern luxury in this beautifully restored riad in the heart of the medina.',
-      image: 'https://images.pexels.com/photos/2549018/pexels-photo-2549018.jpeg?auto=compress&cs=tinysrgb&w=600',
-      location: 'Marrakech, Morocco',
-      type: 'stay',
-      tags: ['boutique', 'traditional', 'medina', 'spa'],
-      rating: 4.6,
-      price: 'From $180/night',
-      duration: '2-5 nights',
-      advisor: 'Omar Hassan',
-      height: 340
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Private Yacht Charter',
-      description: 'Explore the Greek islands aboard a luxury yacht with crew, water sports equipment, and gourmet catering.',
-      image: 'https://images.pexels.com/photos/1001682/pexels-photo-1001682.jpeg?auto=compress&cs=tinysrgb&w=600',
-      location: 'Greek Islands',
-      type: 'hire',
-      tags: ['yacht', 'luxury', 'islands', 'water-sports'],
-      rating: 4.9,
-      price: 'From €3,500/day',
-      duration: '1-7 days',
-      advisor: 'Dimitris Papadopoulos',
-      height: 380
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Artisan Workshop Experience',
-      description: 'Learn traditional pottery techniques from master craftsmen in this hands-on workshop including lunch.',
-      image: 'https://images.pexels.com/photos/1319460/pexels-photo-1319460.jpeg?auto=compress&cs=tinysrgb&w=600',
-      location: 'Kyoto, Japan',
-      type: 'do',
-      tags: ['workshop', 'traditional', 'pottery', 'cultural'],
-      rating: 4.7,
-      price: '¥8,500 per person',
-      duration: '4 hours',
-      advisor: 'Yuki Sato',
-      height: 320
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Luxury Safari Lodge',
-      description: 'Experience the Big Five in comfort with this luxury safari lodge featuring private game drives and spa treatments.',
-      image: 'https://images.pexels.com/photos/631317/pexels-photo-631317.jpeg?auto=compress&cs=tinysrgb&w=600',
-      location: 'Serengeti, Tanzania',
-      type: 'stay',
-      tags: ['safari', 'luxury', 'wildlife', 'spa'],
-      rating: 4.8,
-      price: 'From $800/night',
-      duration: '3-7 nights',
-      advisor: 'Amara Kone',
-      height: 420
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Street Food Tour',
-      description: 'Discover authentic local flavors with a guided tour through the best street food vendors and hidden gems.',
-      image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600',
-      location: 'Bangkok, Thailand',
-      type: 'eat',
-      tags: ['street-food', 'local', 'authentic', 'guided'],
-      rating: 4.6,
-      price: '$45 per person',
-      duration: '3 hours',
-      advisor: 'Siriporn Thanakit',
-      height: 300
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Northern Lights Photography Tour',
-      description: 'Professional photography tour to capture the Aurora Borealis with expert guidance and equipment provided.',
-      image: 'https://images.pexels.com/photos/1586298/pexels-photo-1586298.jpeg?auto=compress&cs=tinysrgb&w=600',
-      location: 'Reykjavik, Iceland',
-      type: 'do',
-      tags: ['northern-lights', 'photography', 'winter', 'guided'],
-      rating: 4.7,
-      price: '€120 per person',
-      duration: '6 hours',
-      advisor: 'Erik Johansson',
-      height: 360
-    },
-    {
-      id: crypto.randomUUID(),
-      title: 'Vintage Wine Estate',
-      description: 'Stay at a historic wine estate with private tastings, vineyard tours, and gourmet farm-to-table dining.',
-      image: 'https://images.pexels.com/photos/1407846/pexels-photo-1407846.jpeg?auto=compress&cs=tinysrgb&w=600',
-      location: 'Napa Valley, USA',
-      type: 'stay',
-      tags: ['wine', 'estate', 'luxury', 'farm-to-table'],
-      rating: 4.8,
-      price: 'From $450/night',
-      duration: '2-4 nights',
-      advisor: 'Sarah Mitchell',
-      height: 340
     }
   ];
 
@@ -287,6 +222,12 @@ export default function ExplorePage() {
       <div className="py-8">
         <div className="container-spacing">
           {filteredData.length > 0 ? (
+            loading ? (
+              <div className="text-center py-16">
+                <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-muted-foreground">Loading inspirations...</p>
+              </div>
+            ) : (
             <Masonry
               data={filteredData.map(item => ({
                 id: item.id,
@@ -302,6 +243,7 @@ export default function ExplorePage() {
                 />
               )}
             />
+            )
           ) : (
             <div className="text-center py-16">
               <div className="max-w-md mx-auto">
@@ -318,6 +260,19 @@ export default function ExplorePage() {
                   <Globe className="mr-2 h-4 w-4" />
                   Browse All Inspirations
                 </Button>
+              </div>
+            </div>
+          )}
+          
+          {error && (
+            <div className="text-center py-8">
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg max-w-md mx-auto">
+                <p className="text-red-700 text-sm">
+                  <strong>Error:</strong> {error}
+                </p>
+                <p className="text-red-600 text-xs mt-2">
+                  Showing sample data as fallback.
+                </p>
               </div>
             </div>
           )}
