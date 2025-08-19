@@ -36,7 +36,9 @@ import {
   Briefcase,
   CalendarDays,
   Timer,
-  TrendingUp
+  TrendingUp,
+  RefreshCw,
+  Trash2
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';

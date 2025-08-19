@@ -153,17 +153,17 @@ export function useWishlist() {
         .eq('user_id', user.id)
         .eq('city', city)
         .eq('country', country)
-        .single();
+        .limit(1);
 
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows returned
+      if (fetchError) {
         throw fetchError;
       }
 
       let wishlistId: string;
 
-      if (existingWishlist) {
+      if (existingWishlist && existingWishlist.length > 0) {
         // Use existing wishlist
-        wishlistId = existingWishlist.id;
+        wishlistId = existingWishlist[0].id;
       } else {
         // Create new wishlist
         const wishlistName = city === country ? city : `${city}, ${country}`;
@@ -192,13 +192,13 @@ export function useWishlist() {
         .select('id')
         .eq('wishlist_id', wishlistId)
         .eq('trip_element_id', tripElement.id)
-        .single();
+        .limit(1);
 
-      if (itemFetchError && itemFetchError.code !== 'PGRST116') {
+      if (itemFetchError) {
         throw itemFetchError;
       }
 
-      if (existingItem) {
+      if (existingItem && existingItem.length > 0) {
         toast({
           title: "Already Saved",
           description: `"${tripElement.title}" is already in your ${city} wishlist.`,

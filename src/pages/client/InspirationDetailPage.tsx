@@ -66,8 +66,8 @@ const mockInspirationData: Record<string, InspirationData & {
     comment: string;
   }>;
 }> = {
-  '1': {
-    id: '1',
+  [crypto.randomUUID()]: {
+    id: crypto.randomUUID(),
     title: 'Luxury Overwater Villa in Maldives',
     description: 'Wake up to crystal-clear waters and pristine coral reefs right beneath your private villa. Includes butler service and private dining.',
     fullDescription: 'Experience the ultimate in luxury and tranquility at this exclusive overwater villa resort in the Maldives. Each villa features floor-to-ceiling windows, a private deck with direct lagoon access, and unobstructed views of the Indian Ocean. The resort offers world-class amenities including a spa, multiple dining options, and a variety of water sports. Your dedicated butler will ensure every detail of your stay is perfect, from arranging private dining experiences to organizing excursions to nearby coral reefs.',
@@ -160,7 +160,7 @@ const mockInspirationData: Record<string, InspirationData & {
 // Related inspirations mock data
 const relatedInspirations: InspirationData[] = [
   {
-    id: '2',
+    id: crypto.randomUUID(),
     title: 'Santorini Sunset Experience',
     description: 'Private sunset dinner at a cliffside restaurant in Oia',
     image: 'https://images.pexels.com/photos/161815/santorini-oia-greece-water-161815.jpeg?auto=compress&cs=tinysrgb&w=400',
@@ -173,7 +173,7 @@ const relatedInspirations: InspirationData[] = [
     advisor: 'Maria Konstantinou'
   },
   {
-    id: '3',
+    id: crypto.randomUUID(),
     title: 'Bali Luxury Resort',
     description: 'Tropical paradise with infinity pools and spa treatments',
     image: 'https://images.pexels.com/photos/2474690/pexels-photo-2474690.jpeg?auto=compress&cs=tinysrgb&w=400',
@@ -186,7 +186,7 @@ const relatedInspirations: InspirationData[] = [
     advisor: 'Ketut Sari'
   },
   {
-    id: '4',
+    id: crypto.randomUUID(),
     title: 'Seychelles Island Hopping',
     description: 'Explore pristine beaches across multiple islands',
     image: 'https://images.pexels.com/photos/1001682/pexels-photo-1001682.jpeg?auto=compress&cs=tinysrgb&w=400',

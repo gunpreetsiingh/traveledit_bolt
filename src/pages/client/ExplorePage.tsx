@@ -29,7 +29,7 @@ export default function ExplorePage() {
   // Sample inspiration data with varying heights for masonry layout
   const inspirationData: (InspirationData & { height: number })[] = [
     {
-      id: '1',
+      id: crypto.randomUUID(),
       title: 'Luxury Overwater Villa in Maldives',
       description: 'Wake up to crystal-clear waters and pristine coral reefs right beneath your private villa. Includes butler service and private dining.',
       image: 'https://images.pexels.com/photos/1287460/pexels-photo-1287460.jpeg?auto=compress&cs=tinysrgb&w=600',
@@ -43,7 +43,7 @@ export default function ExplorePage() {
       height: 380
     },
     {
-      id: '2',
+      id: crypto.randomUUID(),
       title: 'Sunset Dinner at Oia Castle',
       description: 'Experience the world-famous Santorini sunset while dining on traditional Greek cuisine at this historic location.',
       image: 'https://images.pexels.com/photos/161815/santorini-oia-greece-water-161815.jpeg?auto=compress&cs=tinysrgb&w=600',
@@ -57,7 +57,7 @@ export default function ExplorePage() {
       height: 320
     },
     {
-      id: '3',
+      id: crypto.randomUUID(),
       title: 'Private Helicopter Tour of Tokyo',
       description: 'See Tokyo from above with a private helicopter tour covering all major landmarks including Mount Fuji on clear days.',
       image: 'https://images.pexels.com/photos/2070033/pexels-photo-2070033.jpeg?auto=compress&cs=tinysrgb&w=600',
@@ -71,7 +71,7 @@ export default function ExplorePage() {
       height: 420
     },
     {
-      id: '4',
+      id: crypto.randomUUID(),
       title: 'Michelin Star Tasting Menu',
       description: 'Indulge in a 12-course tasting menu at this renowned Michelin-starred restaurant featuring modern Italian cuisine.',
       image: 'https://images.pexels.com/photos/2422915/pexels-photo-2422915.jpeg?auto=compress&cs=tinysrgb&w=600',
@@ -85,7 +85,7 @@ export default function ExplorePage() {
       height: 360
     },
     {
-      id: '5',
+      id: crypto.randomUUID(),
       title: 'Patagonia Trekking Adventure',
       description: 'Multi-day trekking experience through Torres del Paine with professional guides and luxury camping.',
       image: 'https://images.pexels.com/photos/1666021/pexels-photo-1666021.jpeg?auto=compress&cs=tinysrgb&w=600',
@@ -99,7 +99,7 @@ export default function ExplorePage() {
       height: 400
     },
     {
-      id: '6',
+      id: crypto.randomUUID(),
       title: 'Boutique Riad in Marrakech',
       description: 'Traditional Moroccan architecture meets modern luxury in this beautifully restored riad in the heart of the medina.',
       image: 'https://images.pexels.com/photos/2549018/pexels-photo-2549018.jpeg?auto=compress&cs=tinysrgb&w=600',
@@ -113,7 +113,7 @@ export default function ExplorePage() {
       height: 340
     },
     {
-      id: '7',
+      id: crypto.randomUUID(),
       title: 'Private Yacht Charter',
       description: 'Explore the Greek islands aboard a luxury yacht with crew, water sports equipment, and gourmet catering.',
       image: 'https://images.pexels.com/photos/1001682/pexels-photo-1001682.jpeg?auto=compress&cs=tinysrgb&w=600',
@@ -127,7 +127,7 @@ export default function ExplorePage() {
       height: 380
     },
     {
-      id: '8',
+      id: crypto.randomUUID(),
       title: 'Artisan Workshop Experience',
       description: 'Learn traditional pottery techniques from master craftsmen in this hands-on workshop including lunch.',
       image: 'https://images.pexels.com/photos/1319460/pexels-photo-1319460.jpeg?auto=compress&cs=tinysrgb&w=600',
@@ -141,7 +141,7 @@ export default function ExplorePage() {
       height: 320
     },
     {
-      id: '9',
+      id: crypto.randomUUID(),
       title: 'Luxury Safari Lodge',
       description: 'Experience the Big Five in comfort with this luxury safari lodge featuring private game drives and spa treatments.',
       image: 'https://images.pexels.com/photos/631317/pexels-photo-631317.jpeg?auto=compress&cs=tinysrgb&w=600',
@@ -155,7 +155,7 @@ export default function ExplorePage() {
       height: 420
     },
     {
-      id: '10',
+      id: crypto.randomUUID(),
       title: 'Street Food Tour',
       description: 'Discover authentic local flavors with a guided tour through the best street food vendors and hidden gems.',
       image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=600',
@@ -169,7 +169,7 @@ export default function ExplorePage() {
       height: 300
     },
     {
-      id: '11',
+      id: crypto.randomUUID(),
       title: 'Northern Lights Photography Tour',
       description: 'Professional photography tour to capture the Aurora Borealis with expert guidance and equipment provided.',
       image: 'https://images.pexels.com/photos/1586298/pexels-photo-1586298.jpeg?auto=compress&cs=tinysrgb&w=600',
@@ -183,7 +183,7 @@ export default function ExplorePage() {
       height: 360
     },
     {
-      id: '12',
+      id: crypto.randomUUID(),
       title: 'Vintage Wine Estate',
       description: 'Stay at a historic wine estate with private tastings, vineyard tours, and gourmet farm-to-table dining.',
       image: 'https://images.pexels.com/photos/1407846/pexels-photo-1407846.jpeg?auto=compress&cs=tinysrgb&w=600',
