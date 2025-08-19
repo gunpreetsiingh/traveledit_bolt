@@ -575,6 +575,8 @@ export default function SavedPage() {
     isOpen: false,
     wishlistData: null
   });
+  const [shortlistedTrips, setShortlistedTrips] = useState<ShortlistedTrip[]>([]);
+  const [loadingTrips, setLoadingTrips] = useState(false);
   
   // Force use of sample data for demonstration purposes
   const organizedWishlists = sampleWishlistData;
@@ -618,7 +620,7 @@ export default function SavedPage() {
     }
   ];
 
-  const shortlistedTrips: ShortlistedTrip[] = [
+  const shortlistedTripsData: ShortlistedTrip[] = [
     {
       id: '1',
       destination: 'Tuscany, Italy',
@@ -895,7 +897,7 @@ export default function SavedPage() {
         )}
 
         {/* Shortlisted Trips */}
-        {shortlistedTrips.length > 0 && (
+        {shortlistedTripsData.length > 0 && (
           <section className="mb-16">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-heading font-semibold">Shortlisted Trips</h2>
@@ -905,7 +907,7 @@ export default function SavedPage() {
               </Button>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {shortlistedTrips.map((trip) => (
+              {shortlistedTripsData.map((trip) => (
                 <Card key={trip.id} className="overflow-hidden hover:shadow-floating transition-all duration-300 hover:-translate-y-1">
                   <img 
                     src={trip.image} 
