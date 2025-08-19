@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWishlist } from '@/hooks/useWishlist';
+import PlanTripModal from '@/components/modals/PlanTripModal';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -551,6 +552,14 @@ interface PastTrip {
 export default function SavedPage() {
   const { wishlists, loading: wishlistLoading, getOrganizedWishlists, removeFromWishlist, deleteWishlist } = useWishlist();
   const navigate = useNavigate();
+  const [isPlanTripModalOpen, setIsPlanTripModalOpen] = useState(false);
+  const [selectedWishlistData, setSelectedWishlistData] = useState<{
+    name: string;
+    country: string;
+    city?: string;
+    inspirationCount: number;
+    image?: string;
+  } | null>(null);
   
   // Force use of sample data for demonstration purposes
   const organizedWishlists = sampleWishlistData;
@@ -647,6 +656,30 @@ export default function SavedPage() {
       highlights: 18
     }
   ];
+
+  // Handle Plan Trip button clicks
+  const handlePlanTrip = (wishlistData: {
+    name: string;
+    country: string;
+    city?: string;
+    inspirationCount: number;
+    image?: string;
+  }) => {
+    setSelectedWishlistData(wishlistData);
+    setIsPlanTripModalOpen(true);
+  };
+
+  // Handle trip planning form submission
+  const handleTripPlanSubmit = async (formData: any) => {
+    console.log('Trip planning request submitted:', formData);
+    console.log('For wishlist:', selectedWishlistData);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // In real app, this would send to backend/advisor
+    console.log('Trip planning request sent to advisor');
+  };
 
   const getStageColor = (stage: BookedTrip['stage']) => {
     switch (stage) {
@@ -797,13 +830,20 @@ export default function SavedPage() {
                           </p>
                         </div>
                         <div className="flex flex-col gap-2">
-                          <Button>
+                            className="rounded-full px-2 py-1 h-7 hover:bg-primary hover:text-primary-foreground transition-colors"
                             <ArrowRight className="mr-2 h-4 w-4" />
                             Continue Planning
-                          </Button>
+                              const totalInspirations = countryWishlists.reduce((total, wishlist) => total + (wishlist.items?.length || 0), 0);
+                              handlePlanTrip({
+                                name: country,
+                                country: country,
+                                inspirationCount: totalInspirations,
+                                image: countryImages[country]
+                              });
                           <Button variant="outline" size="sm">
+                            title="Plan trip for entire country"
                             <MessageSquare className="mr-2 h-4 w-4" />
-                            Open Chat
+                            <Plane className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
@@ -985,24 +1025,32 @@ export default function SavedPage() {
                                 <Button 
                                   size="sm" 
                                   variant="ghost" 
-                                  className="h-6 w-6 p-0"
+                                  className="h-6 w-6 p-0 hover:bg-primary/10"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     navigate(`/wishlist/${encodeURIComponent(country)}/${encodeURIComponent(wishlist.city)}`);
                                   }}
+                                  title="View city details"
                                 >
                                   <Eye className="h-3 w-3" />
                                 </Button>
                                 <Button 
                                   size="sm" 
                                   variant="ghost" 
-                                  className="h-6 w-6 p-0"
+                                  className="h-6 w-6 p-0 hover:bg-blue-50"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    navigate(`/wishlist/${encodeURIComponent(country)}/${encodeURIComponent(wishlist.city)}`);
+                                    handlePlanTrip({
+                                      name: `${wishlist.city}, ${country}`,
+                                      country: country,
+                                      city: wishlist.city,
+                                      inspirationCount: wishlist.items?.length || 0,
+                                      image: countryImages[country]
+                                    });
                                   }}
+                                  title="Plan trip for this city"
                                 >
-                                  <ArrowRight className="h-3 w-3" />
+                                  <Plane className="h-3 w-3 text-blue-600" />
                                 </Button>
                                 <Button
                                   size="sm"
@@ -1032,6 +1080,19 @@ export default function SavedPage() {
             </div>
           )}
         </section>
+
+        {/* Plan Trip Modal */}
+        {selectedWishlistData && (
+          <PlanTripModal
+            isOpen={isPlanTripModalOpen}
+            onClose={() => {
+              setIsPlanTripModalOpen(false);
+              setSelectedWishlistData(null);
+            }}
+            wishlistData={selectedWishlistData}
+            onSubmit={handleTripPlanSubmit}
+          />
+        )}
 
         {/* Past Trips */}
         {pastTrips.length > 0 && (
