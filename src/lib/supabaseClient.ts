@@ -149,3 +149,36 @@ export async function getTableList() {
     return [];
   }
 }
+
+// Simple in-memory cache for user details
+const userCache = new Map<string, { name: string | null; profile_image_url: string | null } | null>();
+
+// Helper function to fetch user details by ID with caching
+export async function fetchUserDetails(userId: string) {
+  // Check cache first
+  if (userCache.has(userId)) {
+    return userCache.get(userId);
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('name, profile_image_url')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error fetching user details:', error);
+      userCache.set(userId, null);
+      return null;
+    }
+
+    const userDetails = data ? { name: data.name, profile_image_url: data.profile_image_url } : null;
+    userCache.set(userId, userDetails);
+    return userDetails;
+  } catch (err) {
+    console.error('Unexpected error fetching user details:', err);
+    userCache.set(userId, null);
+    return null;
+  }
+}

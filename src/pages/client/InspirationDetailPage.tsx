@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useWishlist } from '@/hooks/useWishlist';
-import { supabase, TripElement, TripElementReview } from '@/lib/supabaseClient';
+import { supabase, TripElement, TripElementReview, fetchUserDetails } from '@/lib/supabaseClient';
 import { useSupabaseUser } from '@/hooks/useSupabaseUser';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -104,10 +104,10 @@ const relatedInspirations: InspirationData[] = [
 ];
 
 interface ReviewWithUser extends TripElementReview {
-  user?: {
+  user: {
     name: string | null;
     profile_image_url: string | null;
-  };
+  } | null;
 }
 
 interface QuickFact {
@@ -177,20 +177,25 @@ export default function InspirationDetailPage() {
         // Fetch reviews with user information
         const { data: reviewsData, error: reviewsError } = await supabase
           .from('trip_element_reviews')
-          .select(`
-            *,
-            user:users(name, profile_image_url)
-          `)
+          .select('*')
           .eq('trip_element_id', id)
           .order('created_at', { ascending: false });
 
         if (reviewsError) {
           console.error('Error fetching reviews:', reviewsError);
         } else {
-          const reviewsWithUser = reviewsData?.map(review => ({
-            ...review,
-            user: Array.isArray(review.user) ? review.user[0] : review.user
-          })) || [];
+          // Fetch user details for each review
+          const reviewsWithUser: ReviewWithUser[] = [];
+          
+          if (reviewsData) {
+            for (const review of reviewsData) {
+              const userDetails = await fetchUserDetails(review.user_id);
+              reviewsWithUser.push({
+                ...review,
+                user: userDetails
+              });
+            }
+          }
           
           setReviews(reviewsWithUser);
           
