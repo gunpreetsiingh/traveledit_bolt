@@ -896,8 +896,9 @@ export default function SavedPage() {
             </div>
           ) : (
             /* Wishlist Content */
-            <div className="space-y-6">
-              {Object.entries(organizedWishlists).map(([country, countryWishlists], countryIndex) => {
+            /* New Wishlist Design - Country Cards with City Line Items */
+            <div className="space-y-4">
+              {Object.entries(organizedWishlists).map(([country, countryWishlists]) => {
                 // Calculate totals for the country
                 const totalCities = countryWishlists.length;
                 const totalInspirations = countryWishlists.reduce((total, wishlist) => total + (wishlist.items?.length || 0), 0);
@@ -906,27 +907,34 @@ export default function SavedPage() {
                 const countryImage = countryImages[country] || 'https://images.pexels.com/photos/1287460/pexels-photo-1287460.jpeg?auto=compress&cs=tinysrgb&w=400';
 
                 return (
-                  <Card key={country} className="overflow-hidden hover:shadow-floating transition-all duration-300">
+                  <Card key={country} className="overflow-hidden hover:shadow-soft transition-all duration-200">
                     {/* Country Header */}
-                    <CardHeader className="pb-4">
+                    <CardHeader className="pb-3">
                       <div className="flex items-center gap-4">
-                        <img 
-                          src={countryImage}
-                          alt={country}
-                          className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
-                        />
+                        <div className="relative">
+                          <img 
+                            src={countryImage}
+                            alt={country}
+                            className="w-12 h-12 rounded-lg object-cover"
+                          />
+                          <div className="absolute -top-1 -right-1">
+                            <Badge variant="default" className="h-5 px-1.5 text-xs font-medium bg-primary">
+                              {totalInspirations}
+                            </Badge>
+                          </div>
+                        </div>
                         <div className="flex-1">
-                          <CardTitle className="text-xl font-heading font-semibold flex items-center gap-2">
-                            <Globe className="h-5 w-5 text-primary" />
+                          <CardTitle className="text-lg font-heading font-semibold text-foreground">
                             {country}
                           </CardTitle>
-                          <CardDescription className="mt-1">
-                            {totalCities} {totalCities === 1 ? 'city' : 'cities'} • {totalInspirations} {totalInspirations === 1 ? 'inspiration' : 'inspirations'}
+                          <CardDescription className="text-sm text-muted-foreground">
+                            {totalCities} {totalCities === 1 ? 'city' : 'cities'} • {totalInspirations} saved
                           </CardDescription>
                         </div>
-                        <Badge variant="secondary" className="bg-primary/10 text-primary">
-                          {totalInspirations}
-                        </Badge>
+                        <Button size="sm" variant="outline" className="rounded-full">
+                          <TrendingUp className="h-4 w-4 mr-2" />
+                          Plan Trip
+                        </Button>
                       </div>
                     </CardHeader>
 
@@ -935,35 +943,40 @@ export default function SavedPage() {
                       <div className="space-y-0">
                         {countryWishlists.map((wishlist, index) => (
                           <div key={wishlist.id} className="group">
-                            <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-muted/50 transition-colors">
+                            <div className="flex items-center justify-between py-2.5 px-3 rounded-md hover:bg-muted/50 transition-colors cursor-pointer">
                               <div className="flex items-center gap-3 flex-1">
                                 <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2">
-                                    <span className="font-medium">{wishlist.city}</span>
-                                    <Badge variant="outline" className="text-xs">
+                                    <span className="font-medium text-foreground">
+                                      {wishlist.city}
+                                    </span>
+                                    <Badge variant="secondary" className="text-xs bg-secondary/60">
                                       {wishlist.items?.length || 0}
                                     </Badge>
                                   </div>
-                                  <p className="text-xs text-muted-foreground mt-0.5">
-                                    Last updated {format(new Date(wishlist.updated_at), 'MMM d, yyyy')}
+                                  <p className="text-xs text-muted-foreground">
+                                    Updated {format(new Date(wishlist.updated_at), 'MMM d')}
                                   </p>
                                 </div>
                               </div>
                               
                               {/* Action buttons - shown on hover */}
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button size="sm" variant="ghost" className="h-8 px-2">
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0">
                                   <Eye className="h-3 w-3" />
                                 </Button>
-                                <Button size="sm" variant="ghost" className="h-8 px-2">
-                                  <TrendingUp className="h-3 w-3" />
+                                <Button size="sm" variant="ghost" className="h-7 w-7 p-0">
+                                  <ArrowRight className="h-3 w-3" />
                                 </Button>
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  onClick={() => deleteWishlist(wishlist.id)}
-                                  className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteWishlist(wishlist.id);
+                                  }}
+                                  className="h-7 w-7 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </Button>
@@ -972,22 +985,10 @@ export default function SavedPage() {
                             
                             {/* Separator line between cities (except last) */}
                             {index < countryWishlists.length - 1 && (
-                              <Separator className="ml-7" />
+                              <Separator className="ml-10" />
                             )}
                           </div>
                         ))}
-                      </div>
-                      
-                      {/* Country-level actions */}
-                      <div className="flex gap-2 mt-6 pt-4 border-t">
-                        <Button size="sm" className="flex-1">
-                          <TrendingUp className="mr-2 h-4 w-4" />
-                          Plan {country} Trip
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <Share className="mr-2 h-4 w-4" />
-                          Share
-                        </Button>
                       </div>
                     </CardContent>
                   </Card>
