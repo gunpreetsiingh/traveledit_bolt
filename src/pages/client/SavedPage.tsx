@@ -43,6 +43,465 @@ import {
 import { format, differenceInDays } from 'date-fns';
 import { cn } from '@/lib/utils';
 
+// Sample wishlist data for demonstration
+const sampleWishlistData = {
+  'France': [
+    {
+      id: 'france-paris',
+      user_id: 'sample-user',
+      name: 'Paris',
+      city: 'Paris',
+      country: 'France',
+      created_at: '2024-01-15T10:00:00Z',
+      updated_at: '2024-01-20T14:30:00Z',
+      items: [
+        { id: '1', trip_element_id: '1', wishlist_id: 'france-paris', created_at: '2024-01-15T10:00:00Z' },
+        { id: '2', trip_element_id: '2', wishlist_id: 'france-paris', created_at: '2024-01-16T11:00:00Z' },
+        { id: '3', trip_element_id: '3', wishlist_id: 'france-paris', created_at: '2024-01-17T12:00:00Z' },
+        { id: '4', trip_element_id: '4', wishlist_id: 'france-paris', created_at: '2024-01-18T13:00:00Z' },
+        { id: '5', trip_element_id: '5', wishlist_id: 'france-paris', created_at: '2024-01-19T14:00:00Z' }
+      ]
+    },
+    {
+      id: 'france-nice',
+      user_id: 'sample-user',
+      name: 'Nice',
+      city: 'Nice',
+      country: 'France',
+      created_at: '2024-01-10T09:00:00Z',
+      updated_at: '2024-01-25T16:45:00Z',
+      items: [
+        { id: '6', trip_element_id: '6', wishlist_id: 'france-nice', created_at: '2024-01-10T09:00:00Z' },
+        { id: '7', trip_element_id: '7', wishlist_id: 'france-nice', created_at: '2024-01-11T10:00:00Z' },
+        { id: '8', trip_element_id: '8', wishlist_id: 'france-nice', created_at: '2024-01-12T11:00:00Z' }
+      ]
+    }
+  ],
+  'Italy': [
+    {
+      id: 'italy-rome',
+      user_id: 'sample-user',
+      name: 'Rome',
+      city: 'Rome',
+      country: 'Italy',
+      created_at: '2024-02-01T08:00:00Z',
+      updated_at: '2024-02-15T12:00:00Z',
+      items: [
+        { id: '9', trip_element_id: '9', wishlist_id: 'italy-rome', created_at: '2024-02-01T08:00:00Z' },
+        { id: '10', trip_element_id: '10', wishlist_id: 'italy-rome', created_at: '2024-02-02T09:00:00Z' },
+        { id: '11', trip_element_id: '11', wishlist_id: 'italy-rome', created_at: '2024-02-03T10:00:00Z' },
+        { id: '12', trip_element_id: '12', wishlist_id: 'italy-rome', created_at: '2024-02-04T11:00:00Z' },
+        { id: '13', trip_element_id: '13', wishlist_id: 'italy-rome', created_at: '2024-02-05T12:00:00Z' },
+        { id: '14', trip_element_id: '14', wishlist_id: 'italy-rome', created_at: '2024-02-06T13:00:00Z' },
+        { id: '15', trip_element_id: '15', wishlist_id: 'italy-rome', created_at: '2024-02-07T14:00:00Z' }
+      ]
+    },
+    {
+      id: 'italy-venice',
+      user_id: 'sample-user',
+      name: 'Venice',
+      city: 'Venice',
+      country: 'Italy',
+      created_at: '2024-02-05T10:00:00Z',
+      updated_at: '2024-02-20T15:30:00Z',
+      items: [
+        { id: '16', trip_element_id: '16', wishlist_id: 'italy-venice', created_at: '2024-02-05T10:00:00Z' },
+        { id: '17', trip_element_id: '17', wishlist_id: 'italy-venice', created_at: '2024-02-06T11:00:00Z' },
+        { id: '18', trip_element_id: '18', wishlist_id: 'italy-venice', created_at: '2024-02-07T12:00:00Z' },
+        { id: '19', trip_element_id: '19', wishlist_id: 'italy-venice', created_at: '2024-02-08T13:00:00Z' }
+      ]
+    },
+    {
+      id: 'italy-florence',
+      user_id: 'sample-user',
+      name: 'Florence',
+      city: 'Florence',
+      country: 'Italy',
+      created_at: '2024-02-10T11:00:00Z',
+      updated_at: '2024-02-22T17:15:00Z',
+      items: [
+        { id: '20', trip_element_id: '20', wishlist_id: 'italy-florence', created_at: '2024-02-10T11:00:00Z' },
+        { id: '21', trip_element_id: '21', wishlist_id: 'italy-florence', created_at: '2024-02-11T12:00:00Z' }
+      ]
+    }
+  ],
+  'Spain': [
+    {
+      id: 'spain-algarve',
+      user_id: 'sample-user',
+      name: 'Algarve',
+      city: 'Algarve',
+      country: 'Spain',
+      created_at: '2024-03-01T09:00:00Z',
+      updated_at: '2024-03-10T14:20:00Z',
+      items: [
+        { id: '22', trip_element_id: '22', wishlist_id: 'spain-algarve', created_at: '2024-03-01T09:00:00Z' },
+        { id: '23', trip_element_id: '23', wishlist_id: 'spain-algarve', created_at: '2024-03-02T10:00:00Z' },
+        { id: '24', trip_element_id: '24', wishlist_id: 'spain-algarve', created_at: '2024-03-03T11:00:00Z' }
+      ]
+    },
+    {
+      id: 'spain-madrid',
+      user_id: 'sample-user',
+      name: 'Madrid',
+      city: 'Madrid',
+      country: 'Spain',
+      created_at: '2024-03-05T10:00:00Z',
+      updated_at: '2024-03-15T16:45:00Z',
+      items: [
+        { id: '25', trip_element_id: '25', wishlist_id: 'spain-madrid', created_at: '2024-03-05T10:00:00Z' },
+        { id: '26', trip_element_id: '26', wishlist_id: 'spain-madrid', created_at: '2024-03-06T11:00:00Z' },
+        { id: '27', trip_element_id: '27', wishlist_id: 'spain-madrid', created_at: '2024-03-07T12:00:00Z' },
+        { id: '28', trip_element_id: '28', wishlist_id: 'spain-madrid', created_at: '2024-03-08T13:00:00Z' },
+        { id: '29', trip_element_id: '29', wishlist_id: 'spain-madrid', created_at: '2024-03-09T14:00:00Z' },
+        { id: '30', trip_element_id: '30', wishlist_id: 'spain-madrid', created_at: '2024-03-10T15:00:00Z' }
+      ]
+    },
+    {
+      id: 'spain-barcelona',
+      user_id: 'sample-user',
+      name: 'Barcelona',
+      city: 'Barcelona',
+      country: 'Spain',
+      created_at: '2024-03-08T12:00:00Z',
+      updated_at: '2024-03-18T18:30:00Z',
+      items: [
+        { id: '31', trip_element_id: '31', wishlist_id: 'spain-barcelona', created_at: '2024-03-08T12:00:00Z' },
+        { id: '32', trip_element_id: '32', wishlist_id: 'spain-barcelona', created_at: '2024-03-09T13:00:00Z' },
+        { id: '33', trip_element_id: '33', wishlist_id: 'spain-barcelona', created_at: '2024-03-10T14:00:00Z' },
+        { id: '34', trip_element_id: '34', wishlist_id: 'spain-barcelona', created_at: '2024-03-11T15:00:00Z' },
+        { id: '35', trip_element_id: '35', wishlist_id: 'spain-barcelona', created_at: '2024-03-12T16:00:00Z' },
+        { id: '36', trip_element_id: '36', wishlist_id: 'spain-barcelona', created_at: '2024-03-13T17:00:00Z' },
+        { id: '37', trip_element_id: '37', wishlist_id: 'spain-barcelona', created_at: '2024-03-14T18:00:00Z' },
+        { id: '38', trip_element_id: '38', wishlist_id: 'spain-barcelona', created_at: '2024-03-15T19:00:00Z' }
+      ]
+    },
+    {
+      id: 'spain-mallorca',
+      user_id: 'sample-user',
+      name: 'Mallorca',
+      city: 'Mallorca',
+      country: 'Spain',
+      created_at: '2024-03-12T14:00:00Z',
+      updated_at: '2024-03-20T20:15:00Z',
+      items: [
+        { id: '39', trip_element_id: '39', wishlist_id: 'spain-mallorca', created_at: '2024-03-12T14:00:00Z' },
+        { id: '40', trip_element_id: '40', wishlist_id: 'spain-mallorca', created_at: '2024-03-13T15:00:00Z' }
+      ]
+    }
+  ],
+  'India': [
+    {
+      id: 'india-agra',
+      user_id: 'sample-user',
+      name: 'Agra',
+      city: 'Agra',
+      country: 'India',
+      created_at: '2024-04-01T07:00:00Z',
+      updated_at: '2024-04-10T11:30:00Z',
+      items: [
+        { id: '41', trip_element_id: '41', wishlist_id: 'india-agra', created_at: '2024-04-01T07:00:00Z' },
+        { id: '42', trip_element_id: '42', wishlist_id: 'india-agra', created_at: '2024-04-02T08:00:00Z' },
+        { id: '43', trip_element_id: '43', wishlist_id: 'india-agra', created_at: '2024-04-03T09:00:00Z' }
+      ]
+    },
+    {
+      id: 'india-varanasi',
+      user_id: 'sample-user',
+      name: 'Varanasi',
+      city: 'Varanasi',
+      country: 'India',
+      created_at: '2024-04-05T08:00:00Z',
+      updated_at: '2024-04-12T13:45:00Z',
+      items: [
+        { id: '44', trip_element_id: '44', wishlist_id: 'india-varanasi', created_at: '2024-04-05T08:00:00Z' },
+        { id: '45', trip_element_id: '45', wishlist_id: 'india-varanasi', created_at: '2024-04-06T09:00:00Z' }
+      ]
+    },
+    {
+      id: 'india-jaipur',
+      user_id: 'sample-user',
+      name: 'Jaipur',
+      city: 'Jaipur',
+      country: 'India',
+      created_at: '2024-04-08T09:00:00Z',
+      updated_at: '2024-04-15T15:20:00Z',
+      items: [
+        { id: '46', trip_element_id: '46', wishlist_id: 'india-jaipur', created_at: '2024-04-08T09:00:00Z' },
+        { id: '47', trip_element_id: '47', wishlist_id: 'india-jaipur', created_at: '2024-04-09T10:00:00Z' },
+        { id: '48', trip_element_id: '48', wishlist_id: 'india-jaipur', created_at: '2024-04-10T11:00:00Z' },
+        { id: '49', trip_element_id: '49', wishlist_id: 'india-jaipur', created_at: '2024-04-11T12:00:00Z' }
+      ]
+    }
+  ],
+  'Peru': [
+    {
+      id: 'peru-lima',
+      user_id: 'sample-user',
+      name: 'Peru',
+      city: 'Peru',
+      country: 'Peru',
+      created_at: '2024-05-01T10:00:00Z',
+      updated_at: '2024-05-08T14:30:00Z',
+      items: [
+        { id: '50', trip_element_id: '50', wishlist_id: 'peru-lima', created_at: '2024-05-01T10:00:00Z' },
+        { id: '51', trip_element_id: '51', wishlist_id: 'peru-lima', created_at: '2024-05-02T11:00:00Z' },
+        { id: '52', trip_element_id: '52', wishlist_id: 'peru-lima', created_at: '2024-05-03T12:00:00Z' },
+        { id: '53', trip_element_id: '53', wishlist_id: 'peru-lima', created_at: '2024-05-04T13:00:00Z' },
+        { id: '54', trip_element_id: '54', wishlist_id: 'peru-lima', created_at: '2024-05-05T14:00:00Z' }
+      ]
+    }
+  ],
+  'Finland': [
+    {
+      id: 'finland-lapland',
+      user_id: 'sample-user',
+      name: 'Lapland',
+      city: 'Lapland',
+      country: 'Finland',
+      created_at: '2024-06-01T11:00:00Z',
+      updated_at: '2024-06-10T16:45:00Z',
+      items: [
+        { id: '55', trip_element_id: '55', wishlist_id: 'finland-lapland', created_at: '2024-06-01T11:00:00Z' },
+        { id: '56', trip_element_id: '56', wishlist_id: 'finland-lapland', created_at: '2024-06-02T12:00:00Z' },
+        { id: '57', trip_element_id: '57', wishlist_id: 'finland-lapland', created_at: '2024-06-03T13:00:00Z' }
+      ]
+    },
+    {
+      id: 'finland-helsinki',
+      user_id: 'sample-user',
+      name: 'Helsinki',
+      city: 'Helsinki',
+      country: 'Finland',
+      created_at: '2024-06-05T12:00:00Z',
+      updated_at: '2024-06-12T18:20:00Z',
+      items: [
+        { id: '58', trip_element_id: '58', wishlist_id: 'finland-helsinki', created_at: '2024-06-05T12:00:00Z' },
+        { id: '59', trip_element_id: '59', wishlist_id: 'finland-helsinki', created_at: '2024-06-06T13:00:00Z' }
+      ]
+    }
+  ],
+  'Turkey': [
+    {
+      id: 'turkey-istanbul',
+      user_id: 'sample-user',
+      name: 'Istanbul',
+      city: 'Istanbul',
+      country: 'Turkey',
+      created_at: '2024-07-01T13:00:00Z',
+      updated_at: '2024-07-08T19:30:00Z',
+      items: [
+        { id: '60', trip_element_id: '60', wishlist_id: 'turkey-istanbul', created_at: '2024-07-01T13:00:00Z' },
+        { id: '61', trip_element_id: '61', wishlist_id: 'turkey-istanbul', created_at: '2024-07-02T14:00:00Z' },
+        { id: '62', trip_element_id: '62', wishlist_id: 'turkey-istanbul', created_at: '2024-07-03T15:00:00Z' },
+        { id: '63', trip_element_id: '63', wishlist_id: 'turkey-istanbul', created_at: '2024-07-04T16:00:00Z' },
+        { id: '64', trip_element_id: '64', wishlist_id: 'turkey-istanbul', created_at: '2024-07-05T17:00:00Z' },
+        { id: '65', trip_element_id: '65', wishlist_id: 'turkey-istanbul', created_at: '2024-07-06T18:00:00Z' }
+      ]
+    },
+    {
+      id: 'turkey-ankara',
+      user_id: 'sample-user',
+      name: 'Ankara',
+      city: 'Ankara',
+      country: 'Turkey',
+      created_at: '2024-07-05T14:00:00Z',
+      updated_at: '2024-07-10T20:15:00Z',
+      items: [
+        { id: '66', trip_element_id: '66', wishlist_id: 'turkey-ankara', created_at: '2024-07-05T14:00:00Z' },
+        { id: '67', trip_element_id: '67', wishlist_id: 'turkey-ankara', created_at: '2024-07-06T15:00:00Z' }
+      ]
+    }
+  ],
+  'United States': [
+    {
+      id: 'usa-newyork',
+      user_id: 'sample-user',
+      name: 'New York',
+      city: 'New York',
+      country: 'United States',
+      created_at: '2024-08-01T15:00:00Z',
+      updated_at: '2024-08-15T21:45:00Z',
+      items: [
+        { id: '68', trip_element_id: '68', wishlist_id: 'usa-newyork', created_at: '2024-08-01T15:00:00Z' },
+        { id: '69', trip_element_id: '69', wishlist_id: 'usa-newyork', created_at: '2024-08-02T16:00:00Z' },
+        { id: '70', trip_element_id: '70', wishlist_id: 'usa-newyork', created_at: '2024-08-03T17:00:00Z' },
+        { id: '71', trip_element_id: '71', wishlist_id: 'usa-newyork', created_at: '2024-08-04T18:00:00Z' },
+        { id: '72', trip_element_id: '72', wishlist_id: 'usa-newyork', created_at: '2024-08-05T19:00:00Z' },
+        { id: '73', trip_element_id: '73', wishlist_id: 'usa-newyork', created_at: '2024-08-06T20:00:00Z' },
+        { id: '74', trip_element_id: '74', wishlist_id: 'usa-newyork', created_at: '2024-08-07T21:00:00Z' },
+        { id: '75', trip_element_id: '75', wishlist_id: 'usa-newyork', created_at: '2024-08-08T22:00:00Z' },
+        { id: '76', trip_element_id: '76', wishlist_id: 'usa-newyork', created_at: '2024-08-09T23:00:00Z' },
+        { id: '77', trip_element_id: '77', wishlist_id: 'usa-newyork', created_at: '2024-08-10T10:00:00Z' }
+      ]
+    },
+    {
+      id: 'usa-sanfrancisco',
+      user_id: 'sample-user',
+      name: 'San Francisco',
+      city: 'San Francisco',
+      country: 'United States',
+      created_at: '2024-08-05T16:00:00Z',
+      updated_at: '2024-08-18T22:30:00Z',
+      items: [
+        { id: '78', trip_element_id: '78', wishlist_id: 'usa-sanfrancisco', created_at: '2024-08-05T16:00:00Z' },
+        { id: '79', trip_element_id: '79', wishlist_id: 'usa-sanfrancisco', created_at: '2024-08-06T17:00:00Z' },
+        { id: '80', trip_element_id: '80', wishlist_id: 'usa-sanfrancisco', created_at: '2024-08-07T18:00:00Z' },
+        { id: '81', trip_element_id: '81', wishlist_id: 'usa-sanfrancisco', created_at: '2024-08-08T19:00:00Z' },
+        { id: '82', trip_element_id: '82', wishlist_id: 'usa-sanfrancisco', created_at: '2024-08-09T20:00:00Z' },
+        { id: '83', trip_element_id: '83', wishlist_id: 'usa-sanfrancisco', created_at: '2024-08-10T21:00:00Z' },
+        { id: '84', trip_element_id: '84', wishlist_id: 'usa-sanfrancisco', created_at: '2024-08-11T22:00:00Z' }
+      ]
+    },
+    {
+      id: 'usa-lasvegas',
+      user_id: 'sample-user',
+      name: 'Las Vegas',
+      city: 'Las Vegas',
+      country: 'United States',
+      created_at: '2024-08-08T17:00:00Z',
+      updated_at: '2024-08-20T23:15:00Z',
+      items: [
+        { id: '85', trip_element_id: '85', wishlist_id: 'usa-lasvegas', created_at: '2024-08-08T17:00:00Z' },
+        { id: '86', trip_element_id: '86', wishlist_id: 'usa-lasvegas', created_at: '2024-08-09T18:00:00Z' },
+        { id: '87', trip_element_id: '87', wishlist_id: 'usa-lasvegas', created_at: '2024-08-10T19:00:00Z' },
+        { id: '88', trip_element_id: '88', wishlist_id: 'usa-lasvegas', created_at: '2024-08-11T20:00:00Z' },
+        { id: '89', trip_element_id: '89', wishlist_id: 'usa-lasvegas', created_at: '2024-08-12T21:00:00Z' }
+      ]
+    },
+    {
+      id: 'usa-sedona',
+      user_id: 'sample-user',
+      name: 'Sedona',
+      city: 'Sedona',
+      country: 'United States',
+      created_at: '2024-08-10T18:00:00Z',
+      updated_at: '2024-08-22T10:45:00Z',
+      items: [
+        { id: '90', trip_element_id: '90', wishlist_id: 'usa-sedona', created_at: '2024-08-10T18:00:00Z' },
+        { id: '91', trip_element_id: '91', wishlist_id: 'usa-sedona', created_at: '2024-08-11T19:00:00Z' },
+        { id: '92', trip_element_id: '92', wishlist_id: 'usa-sedona', created_at: '2024-08-12T20:00:00Z' }
+      ]
+    },
+    {
+      id: 'usa-boston',
+      user_id: 'sample-user',
+      name: 'Boston',
+      city: 'Boston',
+      country: 'United States',
+      created_at: '2024-08-12T19:00:00Z',
+      updated_at: '2024-08-24T11:30:00Z',
+      items: [
+        { id: '93', trip_element_id: '93', wishlist_id: 'usa-boston', created_at: '2024-08-12T19:00:00Z' },
+        { id: '94', trip_element_id: '94', wishlist_id: 'usa-boston', created_at: '2024-08-13T20:00:00Z' },
+        { id: '95', trip_element_id: '95', wishlist_id: 'usa-boston', created_at: '2024-08-14T21:00:00Z' },
+        { id: '96', trip_element_id: '96', wishlist_id: 'usa-boston', created_at: '2024-08-15T22:00:00Z' }
+      ]
+    },
+    {
+      id: 'usa-dc',
+      user_id: 'sample-user',
+      name: 'Washington DC',
+      city: 'Washington DC',
+      country: 'United States',
+      created_at: '2024-08-15T20:00:00Z',
+      updated_at: '2024-08-25T12:15:00Z',
+      items: [
+        { id: '97', trip_element_id: '97', wishlist_id: 'usa-dc', created_at: '2024-08-15T20:00:00Z' },
+        { id: '98', trip_element_id: '98', wishlist_id: 'usa-dc', created_at: '2024-08-16T21:00:00Z' },
+        { id: '99', trip_element_id: '99', wishlist_id: 'usa-dc', created_at: '2024-08-17T22:00:00Z' }
+      ]
+    },
+    {
+      id: 'usa-seattle',
+      user_id: 'sample-user',
+      name: 'Seattle',
+      city: 'Seattle',
+      country: 'United States',
+      created_at: '2024-08-18T21:00:00Z',
+      updated_at: '2024-08-26T13:00:00Z',
+      items: [
+        { id: '100', trip_element_id: '100', wishlist_id: 'usa-seattle', created_at: '2024-08-18T21:00:00Z' },
+        { id: '101', trip_element_id: '101', wishlist_id: 'usa-seattle', created_at: '2024-08-19T22:00:00Z' },
+        { id: '102', trip_element_id: '102', wishlist_id: 'usa-seattle', created_at: '2024-08-20T23:00:00Z' },
+        { id: '103', trip_element_id: '103', wishlist_id: 'usa-seattle', created_at: '2024-08-21T10:00:00Z' },
+        { id: '104', trip_element_id: '104', wishlist_id: 'usa-seattle', created_at: '2024-08-22T11:00:00Z' },
+        { id: '105', trip_element_id: '105', wishlist_id: 'usa-seattle', created_at: '2024-08-23T12:00:00Z' }
+      ]
+    },
+    {
+      id: 'usa-portland',
+      user_id: 'sample-user',
+      name: 'Portland',
+      city: 'Portland',
+      country: 'United States',
+      created_at: '2024-08-20T22:00:00Z',
+      updated_at: '2024-08-27T14:45:00Z',
+      items: [
+        { id: '106', trip_element_id: '106', wishlist_id: 'usa-portland', created_at: '2024-08-20T22:00:00Z' },
+        { id: '107', trip_element_id: '107', wishlist_id: 'usa-portland', created_at: '2024-08-21T23:00:00Z' }
+      ]
+    },
+    {
+      id: 'usa-austin',
+      user_id: 'sample-user',
+      name: 'Austin',
+      city: 'Austin',
+      country: 'United States',
+      created_at: '2024-08-22T23:00:00Z',
+      updated_at: '2024-08-28T15:30:00Z',
+      items: [
+        { id: '108', trip_element_id: '108', wishlist_id: 'usa-austin', created_at: '2024-08-22T23:00:00Z' },
+        { id: '109', trip_element_id: '109', wishlist_id: 'usa-austin', created_at: '2024-08-23T10:00:00Z' },
+        { id: '110', trip_element_id: '110', wishlist_id: 'usa-austin', created_at: '2024-08-24T11:00:00Z' },
+        { id: '111', trip_element_id: '111', wishlist_id: 'usa-austin', created_at: '2024-08-25T12:00:00Z' }
+      ]
+    },
+    {
+      id: 'usa-nashville',
+      user_id: 'sample-user',
+      name: 'Nashville',
+      city: 'Nashville',
+      country: 'United States',
+      created_at: '2024-08-25T10:00:00Z',
+      updated_at: '2024-08-29T16:15:00Z',
+      items: [
+        { id: '112', trip_element_id: '112', wishlist_id: 'usa-nashville', created_at: '2024-08-25T10:00:00Z' },
+        { id: '113', trip_element_id: '113', wishlist_id: 'usa-nashville', created_at: '2024-08-26T11:00:00Z' },
+        { id: '114', trip_element_id: '114', wishlist_id: 'usa-nashville', created_at: '2024-08-27T12:00:00Z' }
+      ]
+    },
+    {
+      id: 'usa-neworleans',
+      user_id: 'sample-user',
+      name: 'New Orleans',
+      city: 'New Orleans',
+      country: 'United States',
+      created_at: '2024-08-27T11:00:00Z',
+      updated_at: '2024-08-30T17:00:00Z',
+      items: [
+        { id: '115', trip_element_id: '115', wishlist_id: 'usa-neworleans', created_at: '2024-08-27T11:00:00Z' },
+        { id: '116', trip_element_id: '116', wishlist_id: 'usa-neworleans', created_at: '2024-08-28T12:00:00Z' },
+        { id: '117', trip_element_id: '117', wishlist_id: 'usa-neworleans', created_at: '2024-08-29T13:00:00Z' },
+        { id: '118', trip_element_id: '118', wishlist_id: 'usa-neworleans', created_at: '2024-08-30T14:00:00Z' },
+        { id: '119', trip_element_id: '119', wishlist_id: 'usa-neworleans', created_at: '2024-08-31T15:00:00Z' }
+      ]
+    }
+  ]
+};
+
+// Sample country images for demonstration
+const countryImages: Record<string, string> = {
+  'France': 'https://images.pexels.com/photos/161853/eiffel-tower-paris-france-tower-161853.jpeg?auto=compress&cs=tinysrgb&w=400',
+  'Italy': 'https://images.pexels.com/photos/2422915/pexels-photo-2422915.jpeg?auto=compress&cs=tinysrgb&w=400',
+  'Spain': 'https://images.pexels.com/photos/460672/pexels-photo-460672.jpeg?auto=compress&cs=tinysrgb&w=400',
+  'India': 'https://images.pexels.com/photos/1603650/pexels-photo-1603650.jpeg?auto=compress&cs=tinysrgb&w=400',
+  'Peru': 'https://images.pexels.com/photos/2356045/pexels-photo-2356045.jpeg?auto=compress&cs=tinysrgb&w=400',
+  'Finland': 'https://images.pexels.com/photos/1586298/pexels-photo-1586298.jpeg?auto=compress&cs=tinysrgb&w=400',
+  'Turkey': 'https://images.pexels.com/photos/1486222/pexels-photo-1486222.jpeg?auto=compress&cs=tinysrgb&w=400',
+  'United States': 'https://images.pexels.com/photos/290386/pexels-photo-290386.jpeg?auto=compress&cs=tinysrgb&w=400'
+};
+
 // Data Interfaces
 interface BookedTrip {
   id: string;
@@ -90,7 +549,9 @@ interface PastTrip {
 
 export default function SavedPage() {
   const { wishlists, loading: wishlistLoading, getOrganizedWishlists, removeFromWishlist, deleteWishlist } = useWishlist();
-  const organizedWishlists = getOrganizedWishlists();
+  
+  // Use sample data for demonstration, fallback to real data if available
+  const organizedWishlists = Object.keys(getOrganizedWishlists()).length > 0 ? getOrganizedWishlists() : sampleWishlistData;
   
   // Sample Data
   const bookedTrips: BookedTrip[] = [
@@ -436,16 +897,13 @@ export default function SavedPage() {
           ) : (
             /* Wishlist Content */
             <div className="space-y-6">
-              {Object.entries(organizedWishlists).map(([country, countryWishlists]) => {
+              {Object.entries(organizedWishlists).map(([country, countryWishlists], countryIndex) => {
                 // Calculate totals for the country
                 const totalCities = countryWishlists.length;
                 const totalInspirations = countryWishlists.reduce((total, wishlist) => total + (wishlist.items?.length || 0), 0);
                 
-                // Get the first image from any wishlist item for the country card
-                const countryImage = countryWishlists
-                  .find(wishlist => wishlist.items && wishlist.items.length > 0)
-                  ?.items?.[0]?.trip_element?.images?.[0] || 
-                  'https://images.pexels.com/photos/1287460/pexels-photo-1287460.jpeg?auto=compress&cs=tinysrgb&w=400';
+                // Use sample country images
+                const countryImage = countryImages[country] || 'https://images.pexels.com/photos/1287460/pexels-photo-1287460.jpeg?auto=compress&cs=tinysrgb&w=400';
 
                 return (
                   <Card key={country} className="overflow-hidden hover:shadow-floating transition-all duration-300">
